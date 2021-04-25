@@ -62,10 +62,10 @@ class MyVisitor extends GJDepthFirst<String, Void>{
             
             System.out.println("Class name: " + entry.getValue().name);
             System.out.println("Class parent name: " + entry.getValue().parent);
-            // for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
-            //     System.out.println("\n\tField Name: " + entry1.getValue().name);
-            //     System.out.println("\tField Type: " + entry1.getValue().type +"\n");            
-            // }
+            for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
+                System.out.println("\n\tField Name: " + entry1.getValue().name);
+                System.out.println("\tField Type: " + entry1.getValue().type +"\n");            
+            }
             for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
                 System.out.println("\n\tMethod Name: " + entry1.getValue().name);
                 System.out.println("\tMethod Type: " + entry1.getValue().type);
@@ -108,10 +108,12 @@ class MyVisitor extends GJDepthFirst<String, Void>{
         String methodType = "void";
         String methodName = "main";
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
+        // ArrayList<String> args = new ArrayList<String>();
+        String arg = n.f11.accept(this, argu);
+        classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, "String[]"));
         super.visit(n, argu);
-
         System.out.println();
-
+        className = null;
         return null;
     }
 
@@ -131,7 +133,7 @@ class MyVisitor extends GJDepthFirst<String, Void>{
         super.visit(n, argu);
 
         System.out.println();
-
+        className = null;
         return null;
     }
 
@@ -158,6 +160,7 @@ class MyVisitor extends GJDepthFirst<String, Void>{
 
         System.out.println();
         printMap();
+        className = null;
         return null;
     }
 
@@ -232,6 +235,25 @@ class MyVisitor extends GJDepthFirst<String, Void>{
     public String visit(FormalParameter n, Void argu) throws Exception{
         String type = n.f0.accept(this, null);
         String name = n.f1.accept(this, null);
+        if (methodName == null){
+            //field
+            if (classDeclarations.get(className).fields.containsKey(name)){
+                throw new RuntimeException("Field: " + name + " already exists in current Class");
+            }
+            classDeclarations.get(className).fields.put(name, new VarClass(name, type));
+        }
+        else{
+            //variable
+            //check if variable already exists
+            if (classDeclarations.get(className).methods.get(methodName).vars.containsKey(name)){
+                throw new RuntimeException("Variable: " + name + " already exists in current Method");
+            }
+            //check if var has a name of a var
+            if (classDeclarations.get(className).methods.get(methodName).args.containsKey(name)){
+                throw new RuntimeException("Arg: " + name + " has the same name with a var.");
+            }
+            classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
+        }
         return type + " " + name;
     }
 
