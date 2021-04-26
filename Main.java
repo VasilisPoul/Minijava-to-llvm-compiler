@@ -103,17 +103,15 @@ class MyVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(MainClass n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
-        System.out.println("Class: " + className);
         classDeclarations.put(className, new ClassInfo(className, null));
         String methodType = "void";
-        String methodName = "main";
+        methodName = "main";
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
-        // ArrayList<String> args = new ArrayList<String>();
         String arg = n.f11.accept(this, argu);
         classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, "String[]"));
         super.visit(n, argu);
-        System.out.println();
         className = null;
+        methodName = null;
         return null;
     }
 
@@ -128,11 +126,8 @@ class MyVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(ClassDeclaration n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
-        System.out.println("Class: " + className);
         classDeclarations.put(className, new ClassInfo(className, null));
         super.visit(n, argu);
-
-        System.out.println();
         className = null;
         return null;
     }
@@ -154,11 +149,8 @@ class MyVisitor extends GJDepthFirst<String, Void>{
         if(!classDeclarations.containsKey(parent)){
             throw new RuntimeException(parent + " not a class type");
         }
-        System.out.println("Class: " + className);
         classDeclarations.put(className, new ClassInfo(className, parent));
         super.visit(n, argu);
-
-        System.out.println();
         printMap();
         className = null;
         return null;
@@ -181,12 +173,11 @@ class MyVisitor extends GJDepthFirst<String, Void>{
      */
     @Override
     public String visit(MethodDeclaration n, Void argu) throws Exception {
-        String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
-
         String methodType = n.f1.accept(this, null);
-        String methodName = n.f2.accept(this, null);
+        methodName = n.f2.accept(this, null);
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
-        System.out.println(methodType + " " + methodName + " -- " + argumentList);
+        String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
+        methodName = null;
         return null;
     }
 
@@ -227,12 +218,14 @@ class MyVisitor extends GJDepthFirst<String, Void>{
         return ret;
     }
 
+
     /**
-     * f0 -> Type()
-     * f1 -> Identifier()
-     */
+    * f0 -> Type()
+    * f1 -> Identifier()
+    * f2 -> ";"
+    */
     @Override
-    public String visit(FormalParameter n, Void argu) throws Exception{
+    public String visit(VarDeclaration n, Void argu) throws Exception {
         String type = n.f0.accept(this, null);
         String name = n.f1.accept(this, null);
         if (methodName == null){
@@ -254,7 +247,26 @@ class MyVisitor extends GJDepthFirst<String, Void>{
             }
             classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
         }
-        return type + " " + name;
+        return null;
+    }
+
+    /**
+     * f0 -> Type()
+     * f1 -> Identifier()
+     */
+    @Override
+    public String visit(FormalParameter n, Void argu) throws Exception{
+        String type = n.f0.accept(this, argu);
+        String arg = n.f1.accept(this, argu);
+        if (arg != null){
+            //check if arg is duplicate
+            printMap();
+            if (classDeclarations.get(className).methods.get(methodName).args.containsKey(arg)){
+                throw new RuntimeException("Arg: " + arg + " already exists.");
+            }
+            classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, type));
+        }
+        return null;
     }
 
     @Override
