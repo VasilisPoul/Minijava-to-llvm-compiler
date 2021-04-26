@@ -1,17 +1,17 @@
 package visitor;
 import syntaxtree.*;
 import java.util.*;
-public class DeclVisitor extends GJDepthFirst<String, Void>{
+public class TypeVisitor extends GJDepthFirst<String, Void>{
 
     public LinkedHashMap<String,ClassInfo> classDeclarations;
     public String className;
     public String methodName;
 
-    public DeclVisitor(){
-        this.classDeclarations = new LinkedHashMap<String,ClassInfo>();
-        className = null;
-        methodName = null;
-      
+    public TypeVisitor(LinkedHashMap<String, ClassInfo> classDeclarations){
+        this.classDeclarations = classDeclarations;
+        this.className = null;
+        this.methodName = null;
+        // this.i = 0;
     }
 
     public void printMap(){
@@ -38,6 +38,51 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         }
     }
 
+    public String valueType(String checkThis, ClassInfo classInfo){
+        //check parents
+        if (checkThis.equals("this")) checkThis = className;
+        else if(classInfo.fields.containsKey(checkThis)){
+            checkThis = classInfo.fields.get(checkThis).type;
+        }
+        
+        else if (classInfo.methods.get(methodName).args.containsKey(checkThis)){
+            checkThis = classInfo.methods.get(methodName).args.get(checkThis).type;
+        }
+        else if (classInfo.methods.get(methodName).vars.containsKey(checkThis)){
+            checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
+        }
+        else if (classDeclarations.containsKey(checkThis)){
+            checkThis = classDeclarations.get(checkThis).name;
+        }        
+        else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
+            checkThis = "int";
+        }
+        else if(/*bool*/ checkThis.equals("true") || checkThis.equals("false")){
+            checkThis = "boolean";
+        }
+        else if(checkThis.equals("int")){
+            checkThis = "int";
+        }
+        else if(checkThis.equals("int[]")){
+            checkThis = "int[]";
+        }
+        else if(checkThis.equals("boolean")){
+            checkThis = "boolean";
+        }
+        else if(checkThis.equals("boolean[]")){
+            checkThis = "boolean[]";
+        }
+        //check this for inf loop
+        else if(classInfo.parent != null){
+            
+            classInfo = classDeclarations.get(classInfo.parent);
+            checkThis = valueType(checkThis, classInfo);
+        } 
+        else throw new RuntimeException(checkThis + " not a class type");
+        return checkThis;
+    }
+
+
     /**
      * f0 -> "class"
      * f1 -> Identifier()
@@ -61,12 +106,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(MainClass n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
-        classDeclarations.put(className, new ClassInfo(className, null));
-        String methodType = "void";
         methodName = "main";
-        classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
-        String arg = n.f11.accept(this, argu);
-        classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, "String[]"));
         super.visit(n, argu);
         className = null;
         methodName = null;
@@ -84,7 +124,6 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(ClassDeclaration n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
-        classDeclarations.put(className, new ClassInfo(className, null));
         super.visit(n, argu);
         className = null;
         return null;
@@ -103,19 +142,8 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(ClassExtendsDeclaration n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
-        String parent = n.f3.accept(this, null);
-        if (className.equals(parent)){
-            throw new RuntimeException("Class: " + className + " is the same with its parent.");
-        }
-        if (classDeclarations.containsKey(className)){
-            throw new RuntimeException("Class: " + className + "already exists.");
-        }
-        if(!classDeclarations.containsKey(parent)){
-            throw new RuntimeException(parent + " not a class type");
-        }
-        classDeclarations.put(className, new ClassInfo(className, parent));
         super.visit(n, argu);
-        // printMap();
+        
         className = null;
         return null;
     }
@@ -139,12 +167,11 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     public String visit(MethodDeclaration n, Void argu) throws Exception {
         String methodType = n.f1.accept(this, null);
         methodName = n.f2.accept(this, null);
-        //check if method exists
-        if (classDeclarations.get(className).methods.containsKey(methodName)){
-            throw new RuntimeException("Field: " + methodName + " already exists in current Class");
+        ClassInfo classInfo = classDeclarations.get(className);
+        String retType = valueType(n.f10.accept(this, argu), classInfo);
+        if (!retType.equals(methodType)){
+            throw new RuntimeException("Wrong return type: " + methodType + " Should be: " + retType);
         }
-        classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
-        String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
         methodName = null;
         return null;
     }
@@ -194,48 +221,21 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     */
     @Override
     public String visit(VarDeclaration n, Void argu) throws Exception {
-        String type = n.f0.accept(this, null);
-        String name = n.f1.accept(this, null);
-        if (methodName == null){
-            //field
-            if (classDeclarations.get(className).fields.containsKey(name)){
-                throw new RuntimeException("Field: " + name + " already exists in current Class");
-            }
-            classDeclarations.get(className).fields.put(name, new VarClass(name, type));
-        }
-        else{
-            //variable
-            //check if variable already exists
-            if (classDeclarations.get(className).methods.get(methodName).vars.containsKey(name)){
-                throw new RuntimeException("Variable: " + name + " already exists in current Method");
-            }
-            //check if var has a name of a var
-            if (classDeclarations.get(className).methods.get(methodName).args.containsKey(name)){
-                throw new RuntimeException("Arg: " + name + " has the same name with a var.");
-            }
-            classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
-        }
+        n.f0.accept(this, null);
+        n.f1.accept(this, null);
         return null;
     }
 
-    /**
-     * f0 -> Type()
-     * f1 -> Identifier()
-     */
-    @Override
-    public String visit(FormalParameter n, Void argu) throws Exception{
-        String type = n.f0.accept(this, argu);
-        String arg = n.f1.accept(this, argu);
-        if (arg != null){
-            //check if arg is duplicate
-            // printMap();
-            if (classDeclarations.get(className).methods.get(methodName).args.containsKey(arg)){
-                throw new RuntimeException("Arg: " + arg + " already exists.");
-            }
-            classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, type));
-        }
-        return null;
-    }
+    // /**
+    //  * f0 -> Type()
+    //  * f1 -> Identifier()
+    //  */
+    // @Override
+    // public String visit(FormalParameter n, Void argu) throws Exception{
+    //     n.f0.accept(this, argu);
+    //     n.f1.accept(this, argu);
+    //     return null;
+    // }
 
     @Override
     public String visit(ArrayType n, Void argu) {
@@ -248,6 +248,63 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
 
     public String visit(IntegerType n, Void argu) {
         return "int";
+    }
+
+    public String visit(AndExpression n, Void argu) {
+        return "boolean";
+    }
+
+    public String visit(CompareExpression n, Void argu) {
+        return "boolean";
+    }
+
+    public String visit(PlusExpression n, Void argu) {
+        return "int";
+    }
+
+    public String visit(MinusExpression n, Void argu) {
+        return "int";
+    }
+
+    public String visit(TimesExpression n, Void argu) {
+        return "int";
+    }
+
+    /**
+     * f0 -> PrimaryExpression()
+    * f1 -> "["
+    * f2 -> PrimaryExpression()
+    * f3 -> "]"
+    */
+    public String visit(ArrayLookup n, Void argu) throws Exception{
+        String value = n.f0.accept(this, null);
+        String valueValue = value;
+        ClassInfo classInfo = classDeclarations.get(className);
+        value = valueType(value, classInfo);
+        if (!value.equals("int[]")){
+            throw new RuntimeException("Value: "+ valueValue+" is not int[]");
+        }
+        return "int";
+    }
+
+    public String visit(ArrayLength n, Void argu) {
+        return "int";
+    }
+
+    public String visit(IntegerLiteral n, Void argu) {
+        return "int";
+    }
+
+    public String visit(TrueLiteral n, Void argu) {
+        return "boolean";
+    }
+
+    public String visit(FalseLiteral n, Void argu) {
+        return "boolean";
+    }
+
+    public String visit(ThisExpression n, Void argu) {
+        return n.f0.toString();
     }
 
     @Override
