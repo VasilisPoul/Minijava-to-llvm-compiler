@@ -104,6 +104,12 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     public String visit(ClassExtendsDeclaration n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
         String parent = n.f3.accept(this, null);
+        if (className.equals(parent)){
+            throw new RuntimeException("Class: " + className + " is the same with its parent.");
+        }
+        if (classDeclarations.containsKey(className)){
+            throw new RuntimeException("Class: " + className + "already exists.");
+        }
         if(!classDeclarations.containsKey(parent)){
             throw new RuntimeException(parent + " not a class type");
         }
@@ -133,6 +139,10 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     public String visit(MethodDeclaration n, Void argu) throws Exception {
         String methodType = n.f1.accept(this, null);
         methodName = n.f2.accept(this, null);
+        //check if method exists
+        if (classDeclarations.get(className).methods.containsKey(methodName)){
+            throw new RuntimeException("Field: " + methodName + " already exists in current Class");
+        }
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
         String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
         methodName = null;
