@@ -9,94 +9,192 @@
             "name": "Example: Add",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/Add.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Add.java"
         },
         {
             "type": "java",
             "name": "Example: ArrayTest",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/ArrayTest.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/ArrayTest.java"
         },
         {
             "type": "java",
             "name": "Example: BadAssign",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/BadAssign.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/BadAssign.java"
         },
         {
             "type": "java",
             "name": "Example: BadAssign2",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/BadAssign2.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/BadAssign2.java"
         },
         {
             "type": "java",
             "name": "Example: BinaryTree",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/BinaryTree.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/BinaryTree.java"
         },
         {
             "type": "java",
             "name": "Example: BubbleSort-error",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/BubbleSort-error.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/BubbleSort-error.java"
         },
         {
             "type": "java",
             "name": "Example: BubbleSort",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/BubbleSort.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/BubbleSort.java"
         },
         {
             "type": "java",
             "name": "Example: CallFromSuper",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/CallFromSuper.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/CallFromSuper.java"
         },
         {
             "type": "java",
             "name": "Example: Classes-error",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "k31-2_8f3767d4",
-            "args": "/home/vasilis/projects/k31-2/test-files/Classes-error.java"
-        },
-        
-        {
-            "type": "java",
-            "name": "Launch Current File",
-            "request": "launch",
-            "mainClass": "${file}",
-            "args": "/home/vasilis/projects/k31-2/test-files/Add.java"
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Classes-error.java"
         },
         {
             "type": "java",
-            "name": "Launch Example",
-            "request": "launch",
-            "mainClass": "Example",
-            "projectName": "project2_7926abf4"
-        },
-        {
-            "type": "java",
-            "name": "Launch Main",
+            "name": "Example: Classes",
             "request": "launch",
             "mainClass": "Main",
-            "projectName": "project2_7926abf4"
-        }
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Classes.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: DerivedCall",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/DerivedCall.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: DoubleDeclaration1",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/DoubleDeclaration1.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: DoubleDeclaration4",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/DoubleDeclaration4.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: DoubleDeclaration6",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/DoubleDeclaration6.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Example1",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Example1.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Factorial-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Factorial-error.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Factorial",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Factorial.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: FieldAndClassConflict",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/FieldAndClassConflict.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: LinearSearch-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/LinearSearch-error.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: LinearSearch",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/LinearSearch.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: LinkedList-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/LinkedList-error.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: LinkedList",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/LinkedList.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Main",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Main.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: ManyClasses",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/ManyClasses.java"
+        },
     ]
 }
