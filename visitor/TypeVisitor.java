@@ -56,11 +56,7 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
                  && classInfo.methods.get(methodName).vars.containsKey(checkThis)){
             checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
         
-        }
-        
-        // else if (classInfo.containsKey(checkThis)){
-        //     checkThis = classInfo.get(checkThis).name;
-        // }        
+        }    
         else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
             checkThis = "int";
         }
@@ -237,6 +233,22 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
         return null;
     }
 
+    boolean isParent(String parent, String child){
+        ClassInfo childClassInfo = null;
+        if(parent.equals(child)) return false;
+        if(classDeclarations.containsKey(child))
+            childClassInfo = classDeclarations.get(child);
+        if (childClassInfo == null) 
+            System.out.println("se piasa");
+        while(childClassInfo.parent != null){
+            if (childClassInfo.parent.equals(parent)){
+                return true;
+            }
+            childClassInfo = classDeclarations.get(childClassInfo.parent);
+        }
+        return false;
+    }
+
     /**
      * f0 -> Identifier()
      * f1 -> "="
@@ -245,12 +257,21 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      */
     @Override
     public String visit(AssignmentStatement n, Void argu) throws Exception {
-   
+    //TODO: check if ident is parent of expr
     String identifier = n.f0.accept(this, null);
     String expr = n.f2.accept(this, null);
+    //check if expr is Class
+    String expr_type;
     ClassInfo classInfo = classDeclarations.get(className);
+    if(classDeclarations.containsKey(expr)){
+        expr_type = expr;
+    }
+    else{
+        expr_type = valueType(expr, classInfo);
+    }
     String ident_type = valueType(identifier, classInfo); 
-    String expr_type = valueType(expr, classInfo);
+    if(isParent(ident_type, expr_type))
+        expr_type = ident_type;
     if(!ident_type.equals(expr_type)){
         throw new RuntimeException("Wrong type: Identifier type \""+ident_type+"\", expression type \""+expr_type+ "\"");
     }
