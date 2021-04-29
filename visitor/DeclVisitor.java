@@ -84,6 +84,9 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(ClassDeclaration n, Void argu) throws Exception {
         className = n.f1.accept(this, null);
+        if (classDeclarations.containsKey(className)){
+            throw new RuntimeException("Class: " + className + " already exists.");
+        }
         classDeclarations.put(className, new ClassInfo(className, null));
         super.visit(n, argu);
         className = null;
@@ -109,7 +112,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
             throw new RuntimeException("Class: " + className + " is the same with its parent.");
         }
         if (classDeclarations.containsKey(className)){
-            throw new RuntimeException("Class: " + className + "already exists.");
+            throw new RuntimeException("Class: " + className + " already exists.");
         }
         if(!classDeclarations.containsKey(parent)){
             throw new RuntimeException(parent + " not a class type");
