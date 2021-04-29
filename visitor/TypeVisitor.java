@@ -238,13 +238,13 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
         if(parent.equals(child)) return false;
         if(classDeclarations.containsKey(child))
             childClassInfo = classDeclarations.get(child);
-        if (childClassInfo == null) 
-            System.out.println("se piasa");
-        while(childClassInfo.parent != null){
-            if (childClassInfo.parent.equals(parent)){
-                return true;
+        if (childClassInfo != null){
+            while(childClassInfo.parent != null){
+                if (childClassInfo.parent.equals(parent)){
+                    return true;
+                }
+                childClassInfo = classDeclarations.get(childClassInfo.parent);
             }
-            childClassInfo = classDeclarations.get(childClassInfo.parent);
         }
         return false;
     }
