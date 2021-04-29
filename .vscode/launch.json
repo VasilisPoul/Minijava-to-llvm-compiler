@@ -196,5 +196,93 @@
             "projectName": "minijava_example_35ebe997",
             "args": "test-files/ManyClasses.java"
         },
+        {
+            "type": "java",
+            "name": "Example: MoreThan4-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/MoreThan4-error.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: MoreThan4",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/MoreThan4.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: NoMatchingMethod",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/NoMatchingMethod.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: NoMethod",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/NoMethod.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: OutOfBounds1",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/OutOfBounds1.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Overload1",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Overload1.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Overload2",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/Overload2.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: QuickSort-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/QuickSort-error.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: QuickSort",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/QuickSort.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: ShadowBaseField",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/ShadowBaseField.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: ShadowField",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/ShadowField.java"
+        },
     ]
 }
