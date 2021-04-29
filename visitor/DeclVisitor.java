@@ -87,6 +87,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         classDeclarations.put(className, new ClassInfo(className, null));
         super.visit(n, argu);
         className = null;
+        // printMap();
         return null;
     }
 
@@ -115,8 +116,8 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         }
         classDeclarations.put(className, new ClassInfo(className, parent));
         super.visit(n, argu);
-        // printMap();
         className = null;
+        // printMap();
         return null;
     }
 
@@ -144,7 +145,9 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
             throw new RuntimeException("Field: " + methodName + " already exists in current Class");
         }
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
-        String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
+        super.visit(n, argu);
+        // n.f7.accept(this, null);
+        // String argumentList = n.f4.present() ? n.f4.accept(this, null) : "";
         methodName = null;
         return null;
     }
@@ -215,6 +218,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
             }
             classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
         }
+        super.visit(n, argu);
         return null;
     }
 
@@ -234,6 +238,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
             }
             classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, type));
         }
+        super.visit(n, argu);
         return null;
     }
 

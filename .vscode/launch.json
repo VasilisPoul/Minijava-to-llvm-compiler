@@ -6,10 +6,83 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Example: Add",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/Add.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: ArrayTest",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/ArrayTest.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: BadAssign",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/BadAssign.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: BadAssign2",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/BadAssign2.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: BinaryTree",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/BinaryTree.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: BubbleSort-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/BubbleSort-error.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: BubbleSort",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/BubbleSort.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: CallFromSuper",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/CallFromSuper.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: Classes-error",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "k31-2_8f3767d4",
+            "args": "/home/vasilis/projects/k31-2/test-files/Classes-error.java"
+        },
+        
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "args": "/mnt/c/Users/βιλλ/Desktop/compilers2021/project2/jtb-javacc-2017/project_2/minijava_example/Example.java"
+            "args": "/home/vasilis/projects/k31-2/test-files/Add.java"
         },
         {
             "type": "java",

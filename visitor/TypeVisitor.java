@@ -40,20 +40,26 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
 
     public String valueType(String checkThis, ClassInfo classInfo){
         //check parents
+        String oldCheckThis = checkThis;
         if (checkThis.equals("this")) checkThis = className;
         else if(classInfo.fields.containsKey(checkThis)){
             checkThis = classInfo.fields.get(checkThis).type;
         }
+        else if (classInfo.methods.containsKey(checkThis)){
+            checkThis = classInfo.methods.get(checkThis).type;
+        }
+        else if (classInfo.methods.containsKey(methodName)){
+            if (classInfo.methods.get(methodName).args.containsKey(checkThis)){
+                checkThis = classInfo.methods.get(methodName).args.get(checkThis).type;
+            }
+            else if (classInfo.methods.get(methodName).vars.containsKey(checkThis)){
+                checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
+            }
+        }
         
-        else if (classInfo.methods.get(methodName).args.containsKey(checkThis)){
-            checkThis = classInfo.methods.get(methodName).args.get(checkThis).type;
-        }
-        else if (classInfo.methods.get(methodName).vars.containsKey(checkThis)){
-            checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
-        }
-        else if (classDeclarations.containsKey(checkThis)){
-            checkThis = classDeclarations.get(checkThis).name;
-        }        
+        // else if (classInfo.containsKey(checkThis)){
+        //     checkThis = classInfo.get(checkThis).name;
+        // }        
         else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
             checkThis = "int";
         }
@@ -79,6 +85,9 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
             checkThis = valueType(checkThis, classInfo);
         } 
         else throw new RuntimeException(checkThis + " not a class type");
+        // if (!checkThis.equals(oldCheckThis)){
+        //     checkThis = "Unefined";
+        // }
         return checkThis;
     }
 
@@ -172,6 +181,7 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
         if (!retType.equals(methodType)){
             throw new RuntimeException("Wrong return type: " + methodType + " Should be: " + retType);
         }
+        super.visit(n, argu);
         methodName = null;
         return null;
     }
@@ -225,6 +235,66 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
         n.f1.accept(this, null);
         return null;
     }
+
+    /**
+     * f0 -> Identifier()
+     * f1 -> "="
+     * f2 -> Expression()
+     * f3 -> ";"
+     */
+    @Override
+    public String visit(AssignmentStatement n, Void argu) throws Exception {
+   
+    String identifier = n.f0.accept(this, null);
+    String expr = n.f2.accept(this, null);
+    ClassInfo classInfo = classDeclarations.get(className);
+    String ident_type = valueType(identifier, classInfo); 
+    String expr_type = valueType(expr, classInfo);
+    if(!ident_type.equals(expr_type)){
+        throw new RuntimeException("Wrong type: Identifier type \""+ident_type+"\", expression type \""+expr_type+ "\"");
+    }
+    super.visit(n, argu);
+    return null;
+ }
+
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "."
+    * f2 -> Identifier()
+    * f3 -> "("
+    * f4 -> ( ExpressionList() )?
+    * f5 -> ")"
+    */
+    public String visit(MessageSend n, Void argu) throws Exception {
+        String prim_expr = n.f0.accept(this, argu);
+        prim_expr = prim_expr.equals("this") ? className : prim_expr; //TODO: what if classname = null
+        ClassInfo classInfo = classDeclarations.containsKey(prim_expr) ? classDeclarations.get(prim_expr) : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
+        String identifier = n.f2.accept(this, argu);
+        super.visit(n, argu);
+        return valueType(identifier, classInfo);
+    }
+
+
+    /**
+    * f0 -> "new"
+    * f1 -> Identifier()
+    * f2 -> "("
+    * f3 -> ")"
+    */
+    public String visit(AllocationExpression n, Void argu) throws Exception {
+        return n.f1.accept(this, argu);
+    }
+  
+       /**
+    * f0 -> "new"
+    * f1 -> "int"
+    * f2 -> "["
+    * f3 -> Expression()
+    * f4 -> "]"
+    */
+   public String visit(ArrayAllocationExpression n, Void argu) throws Exception {
+    return "int[]";
+ }
 
     // /**
     //  * f0 -> Type()

@@ -4,7 +4,7 @@ class Example {
 }
 
 class A {
-    int i;
+    // int i;
     A a;
 
     public int foo(int i, int j) { return i+j; }
