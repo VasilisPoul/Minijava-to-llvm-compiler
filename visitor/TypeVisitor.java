@@ -48,13 +48,14 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
         else if (classInfo.methods.containsKey(checkThis)){
             checkThis = classInfo.methods.get(checkThis).type;
         }
-        else if (classInfo.methods.containsKey(methodName)){
-            if (classInfo.methods.get(methodName).args.containsKey(checkThis)){
-                checkThis = classInfo.methods.get(methodName).args.get(checkThis).type;
-            }
-            else if (classInfo.methods.get(methodName).vars.containsKey(checkThis)){
-                checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
-            }
+        else if (classInfo.methods.containsKey(methodName) 
+                 && classInfo.methods.get(methodName).args.containsKey(checkThis)){
+            checkThis = classInfo.methods.get(methodName).args.get(checkThis).type;
+        }
+        else if (classInfo.methods.containsKey(methodName) 
+                 && classInfo.methods.get(methodName).vars.containsKey(checkThis)){
+            checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
+        
         }
         
         // else if (classInfo.containsKey(checkThis)){
@@ -265,10 +266,14 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f4 -> ( ExpressionList() )?
     * f5 -> ")"
     */
+    @Override
     public String visit(MessageSend n, Void argu) throws Exception {
-        String prim_expr = n.f0.accept(this, argu);
+        String prim_expr = n.f0.accept(this, null);
         prim_expr = prim_expr.equals("this") ? className : prim_expr; //TODO: what if classname = null
-        ClassInfo classInfo = classDeclarations.containsKey(prim_expr) ? classDeclarations.get(prim_expr) : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
+        
+        ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
+                            ? classDeclarations.get(prim_expr) 
+                            : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
         String identifier = n.f2.accept(this, argu);
         super.visit(n, argu);
         return valueType(identifier, classInfo);
@@ -380,5 +385,15 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     @Override
     public String visit(Identifier n, Void argu) {
         return n.f0.toString();
+    }
+
+    /**
+    * f0 -> "("
+    * f1 -> Expression()
+    * f2 -> ")"
+    */
+    @Override
+    public String visit(BracketExpression n, Void argu) throws Exception {
+        return n.f1.accept(this, null);
     }
 }
