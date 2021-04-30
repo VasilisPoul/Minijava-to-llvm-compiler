@@ -83,7 +83,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             classInfo = classDeclarations.get(classInfo.parent);
             checkThis = valueType(checkThis, classInfo);
         } 
-        else throw new RuntimeException(checkThis + " not a class type");
+        else throw new RuntimeException(checkThis + " not valid");
         // if (!checkThis.equals(oldCheckThis)){
         //     checkThis = "Unefined";
         // }
@@ -298,15 +298,18 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                             ? classDeclarations.get(prim_expr) 
                             : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
         String identifier = n.f2.accept(this, argu);
-        LinkedHashMap<String,VarClass> methodargs = classInfo.methods.get(identifier).args;
-        argList = new LinkedHashMap<Integer, VarClass>();
-        i = 0;
-        String flagList = "flagList";
-        n.f4.accept(this, flagList);
-        if (methodargs.size() != argList.size()){
-            throw new RuntimeException(identifier+"'s call has invalid num of args'");
+        if(classInfo.methods.containsKey(identifier)){
+
+            LinkedHashMap<String,VarClass> methodargs = classInfo.methods.get(identifier).args;
+            argList = new LinkedHashMap<Integer, VarClass>();
+            i = 0;
+            String flagList = "flagList";
+            n.f4.accept(this, flagList);
+            if (methodargs.size() != argList.size()){
+                throw new RuntimeException(identifier+"'s call has invalid num of args'");
+            }
         }
-        super.visit(n, argu);
+            super.visit(n, argu);
         return valueType(identifier, classInfo);
     }
 
