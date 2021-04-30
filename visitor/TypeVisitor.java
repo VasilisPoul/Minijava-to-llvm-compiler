@@ -1,17 +1,19 @@
 package visitor;
 import syntaxtree.*;
 import java.util.*;
-public class TypeVisitor extends GJDepthFirst<String, Void>{
+public class TypeVisitor extends GJDepthFirst<String, String>{
 
     public LinkedHashMap<String,ClassInfo> classDeclarations;
+    public LinkedHashMap<Integer, VarClass> argList;
     public String className;
     public String methodName;
+    public int i;
 
     public TypeVisitor(LinkedHashMap<String, ClassInfo> classDeclarations){
         this.classDeclarations = classDeclarations;
         this.className = null;
         this.methodName = null;
-        // this.i = 0;
+        this.i = 0;
     }
 
     public void printMap(){
@@ -110,8 +112,8 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f17 -> "}"
      */
     @Override
-    public String visit(MainClass n, Void argu) throws Exception {
-        className = n.f1.accept(this, null);
+    public String visit(MainClass n, String argu) throws Exception {
+        className = n.f1.accept(this, argu);
         methodName = "main";
         super.visit(n, argu);
         className = null;
@@ -128,8 +130,8 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f5 -> "}"
      */
     @Override
-    public String visit(ClassDeclaration n, Void argu) throws Exception {
-        className = n.f1.accept(this, null);
+    public String visit(ClassDeclaration n, String argu) throws Exception {
+        className = n.f1.accept(this, argu);
         super.visit(n, argu);
         className = null;
         return null;
@@ -146,8 +148,8 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f7 -> "}"
      */
     @Override
-    public String visit(ClassExtendsDeclaration n, Void argu) throws Exception {
-        className = n.f1.accept(this, null);
+    public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
+        className = n.f1.accept(this, argu);
         super.visit(n, argu);
         
         className = null;
@@ -170,9 +172,9 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f12 -> "}"
      */
     @Override
-    public String visit(MethodDeclaration n, Void argu) throws Exception {
-        String methodType = n.f1.accept(this, null);
-        methodName = n.f2.accept(this, null);
+    public String visit(MethodDeclaration n, String argu) throws Exception {
+        String methodType = n.f1.accept(this, argu);
+        methodName = n.f2.accept(this, argu);
         ClassInfo classInfo = classDeclarations.get(className);
         String retType = valueType(n.f10.accept(this, argu), classInfo);
         if (!retType.equals(methodType)){
@@ -188,11 +190,11 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f1 -> FormalParameterTail()
      */
     @Override
-    public String visit(FormalParameterList n, Void argu) throws Exception {
-        String ret = n.f0.accept(this, null);
+    public String visit(FormalParameterList n, String argu) throws Exception {
+        String ret = n.f0.accept(this, argu);
 
         if (n.f1 != null) {
-            ret += n.f1.accept(this, null);
+            ret += n.f1.accept(this, argu);
         }
 
         return ret;
@@ -202,7 +204,7 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f0 -> FormalParameter()
      * f1 -> FormalParameterTail()
      */
-    public String visit(FormalParameterTerm n, Void argu) throws Exception {
+    public String visit(FormalParameterTerm n, String argu) throws Exception {
         return n.f1.accept(this, argu);
     }
 
@@ -211,10 +213,10 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f1 -> FormalParameter()
      */
     @Override
-    public String visit(FormalParameterTail n, Void argu) throws Exception {
+    public String visit(FormalParameterTail n, String argu) throws Exception {
         String ret = "";
         for ( Node node: n.f0.nodes) {
-            ret += ", " + node.accept(this, null);
+            ret += ", " + node.accept(this, argu);
         }
 
         return ret;
@@ -227,9 +229,9 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f2 -> ";"
     */
     @Override
-    public String visit(VarDeclaration n, Void argu) throws Exception {
-        n.f0.accept(this, null);
-        n.f1.accept(this, null);
+    public String visit(VarDeclaration n, String argu) throws Exception {
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
         return null;
     }
 
@@ -256,10 +258,10 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
      * f3 -> ";"
      */
     @Override
-    public String visit(AssignmentStatement n, Void argu) throws Exception {
+    public String visit(AssignmentStatement n, String argu) throws Exception {
     //TODO: check if ident is parent of expr
-    String identifier = n.f0.accept(this, null);
-    String expr = n.f2.accept(this, null);
+    String identifier = n.f0.accept(this, argu);
+    String expr = n.f2.accept(this, argu);
     //check if expr is Class
     String expr_type;
     ClassInfo classInfo = classDeclarations.get(className);
@@ -288,14 +290,22 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f5 -> ")"
     */
     @Override
-    public String visit(MessageSend n, Void argu) throws Exception {
-        String prim_expr = n.f0.accept(this, null);
-        prim_expr = prim_expr.equals("this") ? className : prim_expr; //TODO: what if classname = null
+    public String visit(MessageSend n, String argu) throws Exception {
+        String prim_expr = n.f0.accept(this, argu);
+        prim_expr = prim_expr.equals("this") ? className : prim_expr;
         
         ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
                             ? classDeclarations.get(prim_expr) 
                             : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
         String identifier = n.f2.accept(this, argu);
+        LinkedHashMap<String,VarClass> methodargs = classInfo.methods.get(identifier).args;
+        argList = new LinkedHashMap<Integer, VarClass>();
+        i = 0;
+        String flagList = "flagList";
+        n.f4.accept(this, flagList);
+        if (methodargs.size() != argList.size()){
+            throw new RuntimeException(identifier+"'s call has invalid num of args'");
+        }
         super.visit(n, argu);
         return valueType(identifier, classInfo);
     }
@@ -307,7 +317,7 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f2 -> "("
     * f3 -> ")"
     */
-    public String visit(AllocationExpression n, Void argu) throws Exception {
+    public String visit(AllocationExpression n, String argu) throws Exception {
         return n.f1.accept(this, argu);
     }
   
@@ -318,7 +328,7 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f3 -> Expression()
     * f4 -> "]"
     */
-   public String visit(ArrayAllocationExpression n, Void argu) throws Exception {
+   public String visit(ArrayAllocationExpression n, String argu) throws Exception {
     return "int[]";
  }
 
@@ -327,42 +337,42 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     //  * f1 -> Identifier()
     //  */
     // @Override
-    // public String visit(FormalParameter n, Void argu) throws Exception{
+    // public String visit(FormalParameter n, String argu) throws Exception{
     //     n.f0.accept(this, argu);
     //     n.f1.accept(this, argu);
     //     return null;
     // }
 
     @Override
-    public String visit(ArrayType n, Void argu) {
+    public String visit(ArrayType n, String argu) {
         return "int[]";
     }
 
-    public String visit(BooleanType n, Void argu) {
+    public String visit(BooleanType n, String argu) {
         return "boolean";
     }
 
-    public String visit(IntegerType n, Void argu) {
+    public String visit(IntegerType n, String argu) {
         return "int";
     }
 
-    public String visit(AndExpression n, Void argu) {
+    public String visit(AndExpression n, String argu) {
         return "boolean";
     }
 
-    public String visit(CompareExpression n, Void argu) {
+    public String visit(CompareExpression n, String argu) {
         return "boolean";
     }
 
-    public String visit(PlusExpression n, Void argu) {
+    public String visit(PlusExpression n, String argu) {
         return "int";
     }
 
-    public String visit(MinusExpression n, Void argu) {
+    public String visit(MinusExpression n, String argu) {
         return "int";
     }
 
-    public String visit(TimesExpression n, Void argu) {
+    public String visit(TimesExpression n, String argu) {
         return "int";
     }
 
@@ -372,8 +382,8 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f2 -> PrimaryExpression()
     * f3 -> "]"
     */
-    public String visit(ArrayLookup n, Void argu) throws Exception{
-        String value = n.f0.accept(this, null);
+    public String visit(ArrayLookup n, String argu) throws Exception{
+        String value = n.f0.accept(this, argu);
         String valueValue = value;
         ClassInfo classInfo = classDeclarations.get(className);
         value = valueType(value, classInfo);
@@ -383,28 +393,28 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
         return "int";
     }
 
-    public String visit(ArrayLength n, Void argu) {
+    public String visit(ArrayLength n, String argu) {
         return "int";
     }
 
-    public String visit(IntegerLiteral n, Void argu) {
+    public String visit(IntegerLiteral n, String argu) {
         return "int";
     }
 
-    public String visit(TrueLiteral n, Void argu) {
+    public String visit(TrueLiteral n, String argu) {
         return "boolean";
     }
 
-    public String visit(FalseLiteral n, Void argu) {
+    public String visit(FalseLiteral n, String argu) {
         return "boolean";
     }
 
-    public String visit(ThisExpression n, Void argu) {
+    public String visit(ThisExpression n, String argu) {
         return n.f0.toString();
     }
 
     @Override
-    public String visit(Identifier n, Void argu) {
+    public String visit(Identifier n, String argu) {
         return n.f0.toString();
     }
 
@@ -414,7 +424,31 @@ public class TypeVisitor extends GJDepthFirst<String, Void>{
     * f2 -> ")"
     */
     @Override
-    public String visit(BracketExpression n, Void argu) throws Exception {
-        return n.f1.accept(this, null);
+    public String visit(BracketExpression n, String argu) throws Exception {
+        return n.f1.accept(this, argu);
     }
+
+    /**
+    * f0 -> AndExpression()
+    *       | CompareExpression()
+    *       | PlusExpression()
+    *       | MinusExpression()
+    *       | TimesExpression()
+    *       | ArrayLookup()
+    *       | ArrayLength()
+    *       | MessageSend()
+    *       | PrimaryExpression()
+    */
+   public String visit(Expression n, String argu) throws Exception {
+    String value = n.f0.accept(this, argu);
+    String type = null;
+    ClassInfo classInfo = classDeclarations.get(className);
+    if(argu != null && argu.equals("flagList")){
+        i++;
+        type = valueType(value, classInfo);
+        argList.put(i, new VarClass(value.toString(), type));
+    }  
+    return value;
+ }
+
 }
