@@ -13,7 +13,8 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         methodName = null;
       
     }
-    public Boolean containtsArg(ArrayList<VarClass> array, String name){
+
+    public Boolean containsArg(ArrayList<VarClass> array, String name){
         for (VarClass varClass: array){
             if (varClass.name.equals(name)){
                 return true;
@@ -21,6 +22,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         }
         return false;
     }
+
     public void printMap(){
          //print map
          for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
@@ -100,7 +102,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         classDeclarations.put(className, new ClassInfo(className, null));
         super.visit(n, argu);
         className = null;
-        printMap();
+        // printMap();
         return null;
     }
 
@@ -226,7 +228,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
                 throw new RuntimeException("Variable: " + name + " already exists in current Method");
             }
             //check if var has a name of a var
-            if (containtsArg(classDeclarations.get(className).methods.get(methodName).args, name)){
+            if (containsArg(classDeclarations.get(className).methods.get(methodName).args, name)){
                 throw new RuntimeException("Arg: " + name + " has the same name with a var.");
             }
             classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
@@ -246,7 +248,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         if (arg != null){
             //check if arg is duplicate
             // printMap();
-            if (containtsArg(classDeclarations.get(className).methods.get(methodName).args, arg)){
+            if (containsArg(classDeclarations.get(className).methods.get(methodName).args, arg)){
                 throw new RuntimeException("Arg: " + arg + " already exists.");
             }
             classDeclarations.get(className).methods.get(methodName).args.add(new VarClass(arg, type));
