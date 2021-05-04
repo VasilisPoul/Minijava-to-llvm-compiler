@@ -7,37 +7,11 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     public ArrayList<VarClass> argList;
     public String className;
     public String methodName;
-    public int i;
 
     public TypeVisitor(LinkedHashMap<String, ClassInfo> classDeclarations){
         this.classDeclarations = classDeclarations;
         this.className = null;
         this.methodName = null;
-        this.i = 0;
-    }
-
-    public void printMap(){
-         //print map
-         for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
-            
-            System.out.println("Class name: " + entry.getValue().name);
-            System.out.println("Class parent name: " + entry.getValue().parent);
-            for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
-                System.out.println("\n\tField Name: " + entry1.getValue().name);
-                System.out.println("\tField Type: " + entry1.getValue().type +"\n");            
-            }
-            for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
-                System.out.println("\n\tMethod Name: " + entry1.getValue().name);
-                System.out.println("\tMethod Type: " + entry1.getValue().type);
-                System.out.println("\tMethod Args: " + entry1.getValue().args);
-                
-                for (Map.Entry<String, VarClass> entry2 : entry1.getValue().vars.entrySet()) {
-                    System.out.println("\n\t\tVar Name: " + entry2.getValue().name);
-                    System.out.println("\t\tVar Type: " + entry2.getValue().type + "\n");
-                }   
-            }
-            System.out.println("============================================\n");
-        }
     }
 
     public Boolean containsArg(ArrayList<VarClass> array, String name){
@@ -102,9 +76,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             checkThis = valueType(checkThis, classInfo);
         } 
         else throw new RuntimeException(checkThis + " not valid");
-        // if (!checkThis.equals(oldCheckThis)){
-        //     checkThis = "Unefined";
-        // }
         return checkThis;
     }
 
@@ -322,9 +293,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             ArrayList<VarClass> methodargs = classInfo.methods.get(identifier).args;
             
             argList = new ArrayList<VarClass>();
-            i = 0;
-            String flagList = "flagList";
-            n.f4.accept(this, flagList);
+            n.f4.accept(this, "flagList");
             if (methodargs.size() != argList.size()){
                 throw new RuntimeException(identifier+"'s call has invalid num of args");
             }
