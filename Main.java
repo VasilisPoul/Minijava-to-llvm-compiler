@@ -24,8 +24,8 @@ public class Main {
             System.err.println("Program parsed successfully.");
             DeclVisitor eval = new DeclVisitor();
             root.accept(eval, null);
-            TypeVisitor type = new TypeVisitor(eval.classDeclarations);
-            root.accept(type, null);
+            // TypeVisitor type = new TypeVisitor(eval.classDeclarations);
+            // root.accept(type, null);
         }
         catch(ParseException ex){
             System.out.println(ex.getMessage());

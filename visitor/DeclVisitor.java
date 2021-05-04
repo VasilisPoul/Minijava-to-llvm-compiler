@@ -13,7 +13,14 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         methodName = null;
       
     }
-
+    public Boolean containtsArg(ArrayList<VarClass> array, String name){
+        for (VarClass varClass: array){
+            if (varClass.name.equals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
     public void printMap(){
          //print map
          for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
@@ -27,8 +34,11 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
             for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
                 System.out.println("\n\tMethod Name: " + entry1.getValue().name);
                 System.out.println("\tMethod Type: " + entry1.getValue().type);
-                System.out.println("\tMethod Args: " + entry1.getValue().args);
-                
+                System.out.printf("\tMethod Args: ");
+                for (VarClass varClass: entry1.getValue().args){
+                    System.out.printf("[" + varClass.type + " " + varClass.name + "] ");
+                }
+                System.out.println();
                 for (Map.Entry<String, VarClass> entry2 : entry1.getValue().vars.entrySet()) {
                     System.out.println("\n\t\tVar Name: " + entry2.getValue().name);
                     System.out.println("\t\tVar Type: " + entry2.getValue().type + "\n");
@@ -66,7 +76,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         methodName = "main";
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
         String arg = n.f11.accept(this, argu);
-        classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, "String[]"));
+        classDeclarations.get(className).methods.get(methodName).args.add(new VarClass(arg, "String[]"));
         super.visit(n, argu);
         className = null;
         methodName = null;
@@ -90,7 +100,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         classDeclarations.put(className, new ClassInfo(className, null));
         super.visit(n, argu);
         className = null;
-        // printMap();
+        printMap();
         return null;
     }
 
@@ -216,7 +226,7 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
                 throw new RuntimeException("Variable: " + name + " already exists in current Method");
             }
             //check if var has a name of a var
-            if (classDeclarations.get(className).methods.get(methodName).args.containsKey(name)){
+            if (containtsArg(classDeclarations.get(className).methods.get(methodName).args, name)){
                 throw new RuntimeException("Arg: " + name + " has the same name with a var.");
             }
             classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
@@ -236,10 +246,10 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         if (arg != null){
             //check if arg is duplicate
             // printMap();
-            if (classDeclarations.get(className).methods.get(methodName).args.containsKey(arg)){
+            if (containtsArg(classDeclarations.get(className).methods.get(methodName).args, arg)){
                 throw new RuntimeException("Arg: " + arg + " already exists.");
             }
-            classDeclarations.get(className).methods.get(methodName).args.put(arg, new VarClass(arg, type));
+            classDeclarations.get(className).methods.get(methodName).args.add(new VarClass(arg, type));
         }
         super.visit(n, argu);
         return null;
