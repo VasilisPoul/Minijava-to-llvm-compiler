@@ -42,7 +42,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
 
     public String valueType(String checkThis, ClassInfo classInfo){
         //check parents
-        String oldCheckThis = checkThis;
         if (checkThis.equals("this")) checkThis = className;
         else if(classInfo.fields.containsKey(checkThis)){
             checkThis = classInfo.fields.get(checkThis).type;
@@ -453,5 +452,5 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     }  
     return value;
  }
-
+ 
 }
