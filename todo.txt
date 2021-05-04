@@ -1,3 +1,1 @@
-2: Check if the types in the non terminals for the operations are correct.
-
-3: print the offsets.
+1: print the offsets.
