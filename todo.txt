@@ -1,6 +1,3 @@
-1: Convert the arg data strucuture from a map to an array in order to examine 
-    if the calls have the correct type order (eg int, int, void).
-
 2: Check if the types in the non terminals for the operations are correct.
 
 3: print the offsets.
