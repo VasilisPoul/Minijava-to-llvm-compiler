@@ -334,7 +334,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                         identifier+"'s "+ j 
                         + "'th arg should be " 
                         + methodargs.get(j).type 
-                        + "but is " + argList.get(j).type
+                        + " but is " + argList.get(j).type
                     );
                 }
             }
