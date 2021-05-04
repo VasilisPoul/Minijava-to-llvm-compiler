@@ -331,6 +331,11 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f4 -> "]"
     */
    public String visit(ArrayAllocationExpression n, String argu) throws Exception {
+    String expr = n.f3.accept(this, argu);
+    ClassInfo classInfo = classDeclarations.get(className);
+    if(!valueType(expr, classInfo).equals("int")){
+        throw new RuntimeException("Expression is not int");
+    }
     return "int[]";
  }
 
@@ -366,15 +371,46 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return "boolean";
     }
 
-    public String visit(PlusExpression n, String argu) {
+    public String visit(PlusExpression n, String argu) throws Exception{
+        String left = null, right = null;
+        left = n.f0.accept(this, null);
+        right = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(left, classInfo).equals("int")){
+            throw new RuntimeException("Left expression is not int");
+        }
+        if (!valueType(right, classInfo).equals("int")){
+            throw new RuntimeException("Right expression is not int");
+        }
         return "int";
     }
 
-    public String visit(MinusExpression n, String argu) {
+    public String visit(MinusExpression n, String argu) throws Exception{
+        String left = null, right = null;
+        left = n.f0.accept(this, null);
+        right = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(left, classInfo).equals("int")){
+            throw new RuntimeException("Left expression is not int");
+        }
+        if (!valueType(right, classInfo).equals("int")){
+            throw new RuntimeException("Right expression is not int");
+        }
         return "int";
     }
 
-    public String visit(TimesExpression n, String argu) {
+    public String visit(TimesExpression n, String argu) throws Exception{
+        String left = null, right = null;
+        left = n.f0.accept(this, null);
+        right = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(left, classInfo).equals("int")){
+            throw new RuntimeException("Left expression is not int");
+        }
+        if (!valueType(right, classInfo).equals("int")){
+            throw new RuntimeException("Right expression is not int");
+        }
+
         return "int";
     }
 
@@ -395,7 +431,14 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return "int";
     }
 
-    public String visit(ArrayLength n, String argu) {
+    public String visit(ArrayLength n, String argu) throws Exception{ 
+        String value = n.f0.accept(this, argu);
+        String valueValue = value;
+        ClassInfo classInfo = classDeclarations.get(className);
+        value = valueType(value, classInfo);
+        if (!value.equals("int[]")){
+            throw new RuntimeException("Value: "+ valueValue+" is not int[]");
+        }
         return "int";
     }
 
