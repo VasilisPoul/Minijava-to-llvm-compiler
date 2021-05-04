@@ -4,7 +4,7 @@ import java.util.*;
 public class TypeVisitor extends GJDepthFirst<String, String>{
 
     public LinkedHashMap<String,ClassInfo> classDeclarations;
-    public LinkedHashMap<Integer, VarClass> argList;
+    public ArrayList<VarClass> argList;
     public String className;
     public String methodName;
     public int i;
@@ -40,6 +40,24 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         }
     }
 
+    public Boolean containsArg(ArrayList<VarClass> array, String name){
+        for (VarClass varClass: array){
+            if (varClass.name.equals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String argType(ArrayList<VarClass> array, String name){
+        for (VarClass varClass: array){
+            if (varClass.name.equals(name)){
+                return varClass.type;
+            }
+        }
+        return null;
+    }
+    
     public String valueType(String checkThis, ClassInfo classInfo){
         //check parents
         if (checkThis.equals("this")) checkThis = className;
@@ -50,14 +68,15 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             checkThis = classInfo.methods.get(checkThis).type;
         }
         else if (classInfo.methods.containsKey(methodName) 
-                 && classInfo.methods.get(methodName).args.containsKey(checkThis)){
-            checkThis = classInfo.methods.get(methodName).args.get(checkThis).type;
+                 && containsArg(classInfo.methods.get(methodName).args, checkThis)){
+            checkThis = argType(classInfo.methods.get(methodName).args, checkThis);
         }
         else if (classInfo.methods.containsKey(methodName) 
                  && classInfo.methods.get(methodName).vars.containsKey(checkThis)){
             checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
         
         }    
+        else if(checkThis.equals(className)) return className;
         else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
             checkThis = "int";
         }
@@ -259,8 +278,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(AssignmentStatement n, String argu) throws Exception {
     //TODO: check if ident is parent of expr
-    String identifier = n.f0.accept(this, argu);
-    String expr = n.f2.accept(this, argu);
+    String identifier = n.f0.accept(this, null);
+    String expr = n.f2.accept(this, null);
     //check if expr is Class
     String expr_type;
     ClassInfo classInfo = classDeclarations.get(className);
@@ -290,25 +309,37 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(MessageSend n, String argu) throws Exception {
-        String prim_expr = n.f0.accept(this, argu);
+        String prim_expr = n.f0.accept(this, null);
         prim_expr = prim_expr.equals("this") ? className : prim_expr;
         
         ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
                             ? classDeclarations.get(prim_expr) 
                             : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
-        String identifier = n.f2.accept(this, argu);
+        String identifier = n.f2.accept(this, null);
+        ArrayList<VarClass> prevArgList = argList;
         if(classInfo.methods.containsKey(identifier)){
 
-            LinkedHashMap<String,VarClass> methodargs = classInfo.methods.get(identifier).args;
-            argList = new LinkedHashMap<Integer, VarClass>();
+            ArrayList<VarClass> methodargs = classInfo.methods.get(identifier).args;
+            
+            argList = new ArrayList<VarClass>();
             i = 0;
             String flagList = "flagList";
             n.f4.accept(this, flagList);
             if (methodargs.size() != argList.size()){
-                throw new RuntimeException(identifier+"'s call has invalid num of args'");
+                throw new RuntimeException(identifier+"'s call has invalid num of args");
+            }
+            for (int j = 0; j < methodargs.size(); j++){
+                if (!methodargs.get(j).type.equals(argList.get(j).type)){
+                    throw new RuntimeException(
+                        identifier+"'s "+ j 
+                        + "'th arg should be " 
+                        + methodargs.get(j).type 
+                        + "but is " + argList.get(j).type
+                    );
+                }
             }
         }
-            super.visit(n, argu);
+        argList = prevArgList;
         return valueType(identifier, classInfo);
     }
 
@@ -446,9 +477,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     String type = null;
     ClassInfo classInfo = classDeclarations.get(className);
     if(argu != null && argu.equals("flagList")){
-        i++;
         type = valueType(value, classInfo);
-        argList.put(i, new VarClass(value.toString(), type));
+        argList.add(new VarClass(value.toString(), type));
     }  
     return value;
  }
