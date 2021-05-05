@@ -35,12 +35,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     public String valueType(String checkThis, ClassInfo classInfo){
         //check parents
         if (checkThis.equals("this")) checkThis = className;
-        else if(classInfo.fields.containsKey(checkThis)){
-            checkThis = classInfo.fields.get(checkThis).type;
-        }
-        else if (classInfo.methods.containsKey(checkThis)){
-            checkThis = classInfo.methods.get(checkThis).type;
-        }
         else if (classInfo.methods.containsKey(methodName) 
                  && containsArg(classInfo.methods.get(methodName).args, checkThis)){
             checkThis = argType(classInfo.methods.get(methodName).args, checkThis);
@@ -50,6 +44,12 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
         
         }    
+        else if (classInfo.methods.containsKey(checkThis)){
+            checkThis = classInfo.methods.get(checkThis).type;
+        }
+        else if(classInfo.fields.containsKey(checkThis)){
+            checkThis = classInfo.fields.get(checkThis).type;
+        }
         else if(checkThis.equals(className)) return className;
         else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
             checkThis = "int";
@@ -330,14 +330,14 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f3 -> Expression()
     * f4 -> "]"
     */
-   public String visit(ArrayAllocationExpression n, String argu) throws Exception {
-    String expr = n.f3.accept(this, argu);
-    ClassInfo classInfo = classDeclarations.get(className);
-    if(!valueType(expr, classInfo).equals("int")){
-        throw new RuntimeException("Expression is not int");
+    public String visit(ArrayAllocationExpression n, String argu) throws Exception {
+        String expr = n.f3.accept(this, argu);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if(!valueType(expr, classInfo).equals("int")){
+            throw new RuntimeException("Expression is not int");
+        }
+        return "int[]";
     }
-    return "int[]";
- }
 
     // /**
     //  * f0 -> Type()
