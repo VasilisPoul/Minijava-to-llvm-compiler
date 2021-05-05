@@ -167,7 +167,12 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         ClassInfo classInfo = classDeclarations.get(className);
         String retType = valueType(n.f10.accept(this, argu), classInfo);
         if (!retType.equals(methodType)){
-            throw new RuntimeException("Wrong return type: " + methodType + " Should be: " + retType);
+            throw new RuntimeException(
+                "Wrong return type: " 
+                + methodType 
+                + " Should be: " 
+                + retType
+            );
         }
         super.visit(n, argu);
         methodName = null;
@@ -248,7 +253,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(AssignmentStatement n, String argu) throws Exception {
-    //TODO: check if ident is parent of expr
     String identifier = n.f0.accept(this, null);
     String expr = n.f2.accept(this, null);
     //check if expr is Class
@@ -264,7 +268,12 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     if(isParent(ident_type, expr_type))
         expr_type = ident_type;
     if(!ident_type.equals(expr_type)){
-        throw new RuntimeException("Wrong type: Identifier type \""+ident_type+"\", expression type \""+expr_type+ "\"");
+        throw new RuntimeException(
+            "Wrong type: Identifier type \""
+            + ident_type
+            + "\", expression type \""
+            + expr_type+ "\""
+        );
     }
     super.visit(n, argu);
     return null;
@@ -295,7 +304,10 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             argList = new ArrayList<VarClass>();
             n.f4.accept(this, "flagList");
             if (methodargs.size() != argList.size()){
-                throw new RuntimeException(identifier+"'s call has invalid num of args");
+                throw new RuntimeException(
+                    identifier
+                    + "'s call has invalid num of args"
+                );
             }
             for (int j = 0; j < methodargs.size(); j++){
                 if (!methodargs.get(j).type.equals(argList.get(j).type)){
@@ -303,7 +315,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                         identifier+"'s "+ j 
                         + "'th arg should be " 
                         + methodargs.get(j).type 
-                        + " but is " + argList.get(j).type
+                        + " but is " 
+                        + argList.get(j).type
                     );
                 }
             }

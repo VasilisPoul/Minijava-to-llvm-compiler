@@ -121,13 +121,24 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         className = n.f1.accept(this, null);
         String parent = n.f3.accept(this, null);
         if (className.equals(parent)){
-            throw new RuntimeException("Class: " + className + " is the same with its parent.");
+            throw new RuntimeException(
+                "Class: " 
+                + className 
+                + " is the same with its parent."
+            );
         }
         if (classDeclarations.containsKey(className)){
-            throw new RuntimeException("Class: " + className + " already exists.");
+            throw new RuntimeException(
+                "Class: " 
+                + className 
+                + " already exists."
+            );
         }
         if(!classDeclarations.containsKey(parent)){
-            throw new RuntimeException(parent + " not a class type");
+            throw new RuntimeException(
+                parent 
+                + " not a class type"
+            );
         }
         classDeclarations.put(className, new ClassInfo(className, parent));
         super.visit(n, argu);
@@ -157,7 +168,11 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         methodName = n.f2.accept(this, null);
         //check if method exists
         if (classDeclarations.get(className).methods.containsKey(methodName)){
-            throw new RuntimeException("Field: " + methodName + " already exists in current Class");
+            throw new RuntimeException(
+                "Field: " 
+                + methodName 
+                + " already exists in current Class"
+            );
         }
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
         super.visit(n, argu);
@@ -217,7 +232,11 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         if (methodName == null){
             //field
             if (classDeclarations.get(className).fields.containsKey(name)){
-                throw new RuntimeException("Field: " + name + " already exists in current Class");
+                throw new RuntimeException(
+                    "Field: " 
+                    + name 
+                    + " already exists in current Class"
+                );
             }
             classDeclarations.get(className).fields.put(name, new VarClass(name, type));
         }
@@ -225,11 +244,19 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
             //variable
             //check if variable already exists
             if (classDeclarations.get(className).methods.get(methodName).vars.containsKey(name)){
-                throw new RuntimeException("Variable: " + name + " already exists in current Method");
+                throw new RuntimeException(
+                    "Variable: " 
+                    + name 
+                    + " already exists in current Method"
+                );
             }
             //check if var has a name of a var
             if (containsArg(classDeclarations.get(className).methods.get(methodName).args, name)){
-                throw new RuntimeException("Arg: " + name + " has the same name with a var.");
+                throw new RuntimeException(
+                    "Arg: " 
+                    + name 
+                    + " has the same name with a var."
+                );
             }
             classDeclarations.get(className).methods.get(methodName).vars.put(name, new VarClass(name, type));
         }
