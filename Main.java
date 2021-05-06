@@ -29,6 +29,7 @@ public class Main {
                 TypeVisitor type = new TypeVisitor(eval.classDeclarations);
                 root.accept(type, null);
                 System.err.println("Type Checking Visitor finished successfully.");
+                type.printMap();
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());

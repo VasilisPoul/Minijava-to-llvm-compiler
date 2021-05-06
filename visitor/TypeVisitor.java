@@ -32,6 +32,25 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return null;
     }
     
+    public void printMap(){
+        //print map
+        System.out.println("============================================");
+        for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
+           int field_offset = 0;
+           System.out.println("Class name: " + entry.getValue().name);
+           for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
+                System.out.println("\t"+ entry1.getValue().name + ": "+ field_offset);
+                field_offset = field_offset + entry1.getValue().size;            
+           }
+           int method_offset = 0;
+           for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
+               System.out.println("\t"+ entry1.getValue().name + ": "+ method_offset);
+               method_offset = method_offset + 8;
+           }
+           System.out.println("============================================");
+       }
+   }
+
     public String valueType(String checkThis, ClassInfo classInfo){
         //check parents
         if (checkThis.equals("this")) checkThis = className;
