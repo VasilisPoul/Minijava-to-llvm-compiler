@@ -284,5 +284,126 @@
             "projectName": "minijava_example_35ebe997",
             "args": "test-files/ShadowField.java"
         },
+        {
+            "type": "java",
+            "name": "Example: test06",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test06.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test07",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test07.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test15",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test15.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test17",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test17.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test18",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test18.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test20",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test20.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test21",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test21.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test35",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test35.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test52",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test52.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test62",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test62.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test68",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test68.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test73",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test73.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test82",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test82.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test93",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test93.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: test99",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test99.java"
+        },
+        
     ]
 }
