@@ -25,8 +25,10 @@ public class Main {
                 System.err.println("Program parsed successfully.");
                 DeclVisitor eval = new DeclVisitor();
                 root.accept(eval, null);
+                System.err.println("Declarations Visitor finished succesfully.");
                 TypeVisitor type = new TypeVisitor(eval.classDeclarations);
                 root.accept(type, null);
+                System.err.println("Type Checking Visitor finished succesfully.");
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());
