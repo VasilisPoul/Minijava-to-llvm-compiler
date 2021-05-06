@@ -174,6 +174,25 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                 + retType
             );
         }
+        ClassInfo oldClassInfo = classInfo;
+        if (classInfo.parent != null){
+            classInfo = classDeclarations.get(classInfo.parent);
+            if (classInfo.methods.containsKey(methodName)){
+                if (classInfo.methods.get(methodName).args.size() != oldClassInfo.methods.get(methodName).args.size()){
+                    throw new RuntimeException(
+                        "Wrong override because of wrong parameters list size."
+                    );
+                }
+                for (int j = 0; j < classInfo.methods.get(methodName).args.size(); j++){
+                    if (!classInfo.methods.get(methodName).args.get(j).type.equals(oldClassInfo.methods.get(methodName).args.get(j).type)){
+                        throw new RuntimeException(
+                            "Wrong override because of wrong parameters types."
+                        );
+                    }
+                }
+            }
+        }
+        classInfo = oldClassInfo;
         super.visit(n, argu);
         methodName = null;
         return null;
