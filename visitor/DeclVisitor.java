@@ -169,9 +169,10 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         //check if method exists
         if (classDeclarations.get(className).methods.containsKey(methodName)){
             throw new RuntimeException(
-                "Field: " 
+                "Method: " 
                 + methodName 
-                + " already exists in current Class"
+                + " already exists Class "
+                + className
             );
         }
         classDeclarations.get(className).methods.put(methodName, new MethodClass(methodName, methodType));
@@ -235,7 +236,8 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
                 throw new RuntimeException(
                     "Field: " 
                     + name 
-                    + " already exists in current Class"
+                    + " already exists in Class "
+                    + className
                 );
             }
             classDeclarations.get(className).fields.put(name, new VarClass(name, type));
@@ -247,7 +249,8 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
                 throw new RuntimeException(
                     "Variable: " 
                     + name 
-                    + " already exists in current Method"
+                    + " already exists Method "
+                    + methodName
                 );
             }
             //check if var has a name of a var
