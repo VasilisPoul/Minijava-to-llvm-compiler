@@ -29,7 +29,14 @@ public class Main {
                 TypeVisitor type = new TypeVisitor(eval.classDeclarations);
                 root.accept(type, null);
                 System.err.println("Type Checking Visitor finished successfully.");
-                type.printMap();
+                type.generateOffsets();
+                for (Map.Entry<String, ClassInfo> entry : type.classDeclarations.entrySet()) {
+                    ClassInfo currentClass = entry.getValue();
+                    System.out.println("class name: " + currentClass.name);
+                    for (Map.Entry<String, Integer> fieldOffsets : currentClass.fieldOffsets.entrySet()){
+                        System.out.println(fieldOffsets.getKey()+"="+fieldOffsets.getValue());
+                    }
+                }
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());

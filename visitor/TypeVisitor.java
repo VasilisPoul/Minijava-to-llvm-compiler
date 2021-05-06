@@ -14,6 +14,28 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         this.methodName = null;
     }
 
+    public void generateOffsets(){
+        for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
+            ClassInfo currentClass = entry.getValue();
+            Stack<ClassInfo> classStack = new Stack<ClassInfo>();
+            do{
+                classStack.push(currentClass);
+                currentClass = classDeclarations.get(currentClass.parent);
+            } while (currentClass != null);
+            
+            int fieldOffset = 0;
+            entry.getValue().fieldOffsets = new LinkedHashMap<>();
+            while(classStack.size() != 0){
+                ClassInfo classInfo = classStack.pop();
+                for(Map.Entry<String,VarClass> fieldEntry : classInfo.fields.entrySet()){
+                    VarClass currentField = fieldEntry.getValue();
+                    entry.getValue().fieldOffsets.put(currentField.name, fieldOffset);
+                    fieldOffset += currentField.size;
+                }    
+            }
+        }
+    }
+
     public Boolean containsArg(ArrayList<VarClass> array, String name){
         for (VarClass varClass: array){
             if (varClass.name.equals(name)){
