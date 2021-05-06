@@ -329,10 +329,11 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                 );
             }
             for (int j = 0; j < methodargs.size(); j++){
-                if (!methodargs.get(j).type.equals(argList.get(j).type)){
+                if (!methodargs.get(j).type.equals(argList.get(j).type) 
+                && !isParent(methodargs.get(j).type, argList.get(j).type)){
                     throw new RuntimeException(
-                        identifier+"'s "+ j 
-                        + "'th arg should be " 
+                        identifier+"'s "+ (j+1) 
+                        + " arg should be " 
                         + methodargs.get(j).type 
                         + " but is " 
                         + argList.get(j).type
@@ -455,13 +456,46 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     public String visit(ArrayLookup n, String argu) throws Exception{
         String value = n.f0.accept(this, argu);
         String valueValue = value;
+        String index = n.f2.accept(this, argu);
         ClassInfo classInfo = classDeclarations.get(className);
         value = valueType(value, classInfo);
         if (!value.equals("int[]")){
             throw new RuntimeException("Value: "+ valueValue+" is not int[]");
         }
+        String indexType = valueType(index, classInfo);
+        if (!indexType.equals("int")){
+            throw new RuntimeException("Index: "+ index+" is not int");
+        }
         return "int";
     }
+
+
+       /**
+    * f0 -> Identifier()
+    * f1 -> "["
+    * f2 -> Expression()
+    * f3 -> "]"
+    * f4 -> "="
+    * f5 -> Expression()
+    * f6 -> ";"
+    */
+    public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
+        ClassInfo classInfo = classDeclarations.get(className);
+        String identifier = n.f0.accept(this, argu);
+        if (!valueType(identifier, classInfo).equals("int[]") ){
+            throw new RuntimeException("Value: "+ identifier +" is not int[]");
+        }
+        String expr = n.f2.accept(this, argu);
+        if (!valueType(expr, classInfo).equals("int") ){
+            throw new RuntimeException("Index: "+ expr +" is not int");
+        }
+        String expr1 = n.f5.accept(this, argu);
+        if (!valueType(expr1, classInfo).equals("int") ){
+            throw new RuntimeException("Value: "+ expr1 +" is not int");
+        }
+        return null;
+    }
+
 
     public String visit(ArrayLength n, String argu) throws Exception{ 
         String value = n.f0.accept(this, argu);
@@ -516,15 +550,34 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     *       | MessageSend()
     *       | PrimaryExpression()
     */
-   public String visit(Expression n, String argu) throws Exception {
-    String value = n.f0.accept(this, argu);
-    String type = null;
-    ClassInfo classInfo = classDeclarations.get(className);
-    if(argu != null && argu.equals("flagList")){
-        type = valueType(value, classInfo);
-        argList.add(new VarClass(value.toString(), type));
-    }  
-    return value;
- }
- 
+    public String visit(Expression n, String argu) throws Exception {
+        String value = n.f0.accept(this, argu);
+        String type = null;
+        ClassInfo classInfo = classDeclarations.get(className);
+        if(argu != null && argu.equals("flagList")){
+            type = valueType(value, classInfo);
+            argList.add(new VarClass(value.toString(), type));
+        }  
+        return value;
+    }
+    
+       /**
+    * f0 -> "System.out.println"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> ";"
+    */
+    public String visit(PrintStatement n, String argu) throws Exception {
+
+        String printExpr = n.f2.accept(this, argu);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(printExpr, classInfo).equals("int")){
+            throw new RuntimeException(
+                "Invalid print expression. Should be int but is "
+                + valueType(printExpr, classInfo)
+            );
+        }
+        return null;
+    }
 }
