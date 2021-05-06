@@ -4,7 +4,7 @@ class test99{
     }
 }
 
-class Test {
+class Test extends Test {
 
     Test test;
     int i;

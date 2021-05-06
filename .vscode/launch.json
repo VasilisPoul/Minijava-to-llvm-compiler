@@ -404,6 +404,13 @@
             "projectName": "minijava_example_35ebe997",
             "args": "test-files/test99.java"
         },
-        
+        {
+            "type": "java",
+            "name": "Example: test99-copy",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/test99-copy.java"
+        },
     ]
 }
