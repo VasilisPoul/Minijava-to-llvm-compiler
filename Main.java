@@ -36,6 +36,9 @@ public class Main {
                     for (Map.Entry<String, Integer> fieldOffsets : currentClass.fieldOffsets.entrySet()){
                         System.out.println(fieldOffsets.getKey()+"="+fieldOffsets.getValue());
                     }
+                    for (Map.Entry<String, Integer> methodOffsets : currentClass.methodOffsets.entrySet()){
+                        System.out.println(methodOffsets.getKey()+"="+methodOffsets.getValue());
+                    }
                 }
             }
             catch(ParseException ex){

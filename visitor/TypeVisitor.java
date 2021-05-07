@@ -25,6 +25,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             
             int fieldOffset = 0;
             entry.getValue().fieldOffsets = new LinkedHashMap<>();
+            int methodOffset = 0;
+            entry.getValue().methodOffsets = new LinkedHashMap<>();
             while(classStack.size() != 0){
                 ClassInfo classInfo = classStack.pop();
                 for(Map.Entry<String,VarClass> fieldEntry : classInfo.fields.entrySet()){
@@ -32,7 +34,14 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                     entry.getValue().fieldOffsets.put(currentField.name, fieldOffset);
                     fieldOffset += currentField.size;
                 }    
+                for(Map.Entry<String,MethodClass> methodEntry : classInfo.methods.entrySet()){
+                    MethodClass currentMethod = methodEntry.getValue();
+                    if(!entry.getValue().methodOffsets.containsKey(currentMethod.name))
+                        entry.getValue().methodOffsets.put(currentMethod.name, methodOffset);
+                    methodOffset += 8;
+                }
             }
+
         }
     }
 
