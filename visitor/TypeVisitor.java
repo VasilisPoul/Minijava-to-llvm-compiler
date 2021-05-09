@@ -31,12 +31,16 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                 ClassInfo classInfo = classStack.pop();
                 for(Map.Entry<String,VarClass> fieldEntry : classInfo.fields.entrySet()){
                     VarClass currentField = fieldEntry.getValue();
-                    entry.getValue().fieldOffsets.put(currentField.name, fieldOffset);
+                    if (classStack.size() == 0)
+                        entry.getValue().fieldOffsets.put(currentField.name, fieldOffset);
                     fieldOffset += currentField.size;
                 }    
                 for(Map.Entry<String,MethodClass> methodEntry : classInfo.methods.entrySet()){
                     MethodClass currentMethod = methodEntry.getValue();
-                    if(!entry.getValue().methodOffsets.containsKey(currentMethod.name))
+                    if (currentMethod.name.equals("main")){
+                        break;
+                    }
+                    if(!entry.getValue().methodOffsets.containsKey(currentMethod.name) && (classStack.size() == 0))
                         entry.getValue().methodOffsets.put(currentMethod.name, methodOffset);
                     methodOffset += 8;
                 }
