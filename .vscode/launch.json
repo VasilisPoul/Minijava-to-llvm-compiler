@@ -412,5 +412,21 @@
             "projectName": "minijava_example_35ebe997",
             "args": "test-files/test99-copy.java"
         },
+        {
+            "type": "java",
+            "name": "Example: TreeVisitor.java",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/TreeVisitor.java"
+        },
+        {
+            "type": "java",
+            "name": "Example: TreeVisitor-Error.java",
+            "request": "launch",
+            "mainClass": "Main",
+            "projectName": "minijava_example_35ebe997",
+            "args": "test-files/TreeVisitor-Error.java"
+        },
     ]
 }
