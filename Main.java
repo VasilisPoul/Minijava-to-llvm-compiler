@@ -38,11 +38,11 @@ public class Main {
                     System.out.println("-----------Class " + currentClass.name + "-----------");
                     System.out.println("--Variables---");
                     for (Map.Entry<String, Integer> fieldOffsets : currentClass.fieldOffsets.entrySet()){
-                        System.out.println(fieldOffsets.getKey()+": "+fieldOffsets.getValue());
+                        System.out.println(currentClass.name + "." +fieldOffsets.getKey()+": "+fieldOffsets.getValue());
                     }
                     System.out.println("---Methods---");
                     for (Map.Entry<String, Integer> methodOffsets : currentClass.methodOffsets.entrySet()){
-                        System.out.println(methodOffsets.getKey()+": "+methodOffsets.getValue());
+                        System.out.println(currentClass.name + "." + methodOffsets.getKey()+": "+methodOffsets.getValue());
                     }
                 }
             }
