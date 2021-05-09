@@ -32,12 +32,17 @@ public class Main {
                 type.generateOffsets();
                 for (Map.Entry<String, ClassInfo> entry : type.classDeclarations.entrySet()) {
                     ClassInfo currentClass = entry.getValue();
-                    System.out.println("class name: " + currentClass.name);
-                    for (Map.Entry<String, Integer> fieldOffsets : currentClass.fieldOffsets.entrySet()){
-                        System.out.println(fieldOffsets.getKey()+"="+fieldOffsets.getValue());
+                    if (currentClass.methods.containsKey("main")){
+                        continue;
                     }
+                    System.out.println("-----------Class " + currentClass.name + "-----------");
+                    System.out.println("--Variables---");
+                    for (Map.Entry<String, Integer> fieldOffsets : currentClass.fieldOffsets.entrySet()){
+                        System.out.println(fieldOffsets.getKey()+": "+fieldOffsets.getValue());
+                    }
+                    System.out.println("---Methods---");
                     for (Map.Entry<String, Integer> methodOffsets : currentClass.methodOffsets.entrySet()){
-                        System.out.println(methodOffsets.getKey()+"="+methodOffsets.getValue());
+                        System.out.println(methodOffsets.getKey()+": "+methodOffsets.getValue());
                     }
                 }
             }
