@@ -27,6 +27,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             entry.getValue().fieldOffsets = new LinkedHashMap<>();
             int methodOffset = 0;
             entry.getValue().methodOffsets = new LinkedHashMap<>();
+            LinkedHashMap<String,Integer> parentMethodOffsets = new LinkedHashMap<>();
             while(classStack.size() != 0){
                 ClassInfo classInfo = classStack.pop();
                 for(Map.Entry<String,VarClass> fieldEntry : classInfo.fields.entrySet()){
@@ -40,8 +41,17 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                     if (currentMethod.name.equals("main")){
                         break;
                     }
-                    if(!entry.getValue().methodOffsets.containsKey(currentMethod.name) && (classStack.size() == 0))
-                        entry.getValue().methodOffsets.put(currentMethod.name, methodOffset);
+                    if(!parentMethodOffsets.containsKey(currentMethod.name) && classStack.size() > 0) 
+                        parentMethodOffsets.put(currentMethod.name, methodOffset);
+                    if(classStack.size() == 0){
+                        if(parentMethodOffsets.containsKey(currentMethod.name)){
+                            continue;
+                            // entry.getValue().methodOffsets.put(currentMethod.name, allMethodOffsets.get(currentMethod.name));
+                        }   
+                        else{
+                            entry.getValue().methodOffsets.put(currentMethod.name, methodOffset);
+                        }
+                    }
                     methodOffset += 8;
                 }
             }
@@ -105,6 +115,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             checkThis = classInfo.fields.get(checkThis).type;
         }
         else if(checkThis.equals(className)) return className;
+        else if(classDeclarations.containsKey(checkThis)) return checkThis;
         else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
             checkThis = "int";
         }
@@ -662,5 +673,15 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             throw new RuntimeException("Right expression is not int");
         }
         return "boolean";
+    }
+
+    /**
+    * f0 -> "!"
+    * f1 -> PrimaryExpression()
+    */
+    public String visit(NotExpression n, String argu) throws Exception {
+        ClassInfo classInfo = classDeclarations.get(className);
+        String checkThis = n.f1.accept(this, argu);
+        return valueType(checkThis, classInfo);
     }
 }
