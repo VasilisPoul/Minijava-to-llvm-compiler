@@ -223,9 +223,9 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         if (!retType.equals(methodType)){
             throw new RuntimeException(
                 "Wrong return type: " 
-                + methodType 
+                + retType 
                 + " Should be: " 
-                + retType
+                + methodType
             );
         }
         ClassInfo oldClassInfo = classInfo;
@@ -450,14 +450,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return "int";
     }
 
-    public String visit(AndExpression n, String argu) {
-        return "boolean";
-    }
-
-    public String visit(CompareExpression n, String argu) {
-        return "boolean";
-    }
-
     public String visit(PlusExpression n, String argu) throws Exception{
         String left = null, right = null;
         left = n.f0.accept(this, null);
@@ -604,6 +596,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     *       | MessageSend()
     *       | PrimaryExpression()
     */
+    @Override
     public String visit(Expression n, String argu) throws Exception {
         String value = n.f0.accept(this, argu);
         String type = null;
@@ -622,6 +615,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f3 -> ")"
     * f4 -> ";"
     */
+    @Override
     public String visit(PrintStatement n, String argu) throws Exception {
 
         String printExpr = n.f2.accept(this, argu);
@@ -633,5 +627,40 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             );
         }
         return null;
+    }
+
+       /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "&&"
+    * f2 -> PrimaryExpression()
+    */
+    @Override
+    public String visit(AndExpression n, String argu) throws Exception {  
+        String left = null, right = null;
+        left = n.f0.accept(this, null);
+        right = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(left, classInfo).equals("boolean")){
+            throw new RuntimeException("Left expression is not boolean");
+        }
+        if (!valueType(right, classInfo).equals("boolean")){
+            throw new RuntimeException("Right expression is not boolean");
+        }
+        return "boolean";
+    }
+
+    @Override
+    public String visit(CompareExpression n, String argu) throws Exception {
+        String left = null, right = null;
+        left = n.f0.accept(this, null);
+        right = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(left, classInfo).equals("int")){
+            throw new RuntimeException("Left expression is not int");
+        }
+        if (!valueType(right, classInfo).equals("int")){
+            throw new RuntimeException("Right expression is not int");
+        }
+        return "boolean";
     }
 }
