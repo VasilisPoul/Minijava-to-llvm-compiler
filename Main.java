@@ -54,10 +54,15 @@ public class Main {
             }
             catch(Exception ex){
                 System.err.println(ex.getMessage());
+
             }
             finally{
+                
                 try{
-                    if(fis != null) fis.close();
+                    if(fis != null){
+                        System.err.println("-----------------------");
+                        fis.close();
+                    } 
                 }
                 catch(IOException ex){
                     System.err.println(ex.getMessage());
