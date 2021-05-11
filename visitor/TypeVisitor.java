@@ -81,20 +81,20 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         //print map
         System.out.println("============================================");
         for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
-           int field_offset = 0;
-           System.out.println("Class name: " + entry.getValue().name);
-           for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
-                System.out.println("\t"+ entry1.getValue().name + ": "+ field_offset);
-                field_offset = field_offset + entry1.getValue().size;            
-           }
-           int method_offset = 0;
-           for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
-               System.out.println("\t"+ entry1.getValue().name + ": "+ method_offset);
-               method_offset = method_offset + 8;
-           }
-           System.out.println("============================================");
-       }
-   }
+            int field_offset = 0;
+            System.out.println("Class name: " + entry.getValue().name);
+            for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
+                    System.out.println("\t"+ entry1.getValue().name + ": "+ field_offset);
+                    field_offset = field_offset + entry1.getValue().size;            
+            }
+            int method_offset = 0;
+            for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
+                System.out.println("\t"+ entry1.getValue().name + ": "+ method_offset);
+                method_offset = method_offset + 8;
+            }
+            System.out.println("============================================");
+        }
+    }
 
     public String valueType(String checkThis, ClassInfo classInfo){
         //check parents
@@ -205,7 +205,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
         className = n.f1.accept(this, argu);
         super.visit(n, argu);
-        
         className = null;
         return null;
     }
@@ -378,7 +377,9 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         
         ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
                             ? classDeclarations.get(prim_expr) 
-                            : classDeclarations.get(valueType(prim_expr, classDeclarations.get(className)));
+                            : classDeclarations.get(
+                                valueType(prim_expr, classDeclarations.get(className))
+                              );
         String identifier = n.f2.accept(this, null);
         ArrayList<VarClass> prevArgList = argList;
         if(classInfo.methods.containsKey(identifier)){
@@ -417,6 +418,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f2 -> "("
     * f3 -> ")"
     */
+    @Override
     public String visit(AllocationExpression n, String argu) throws Exception {
         return n.f1.accept(this, argu);
     }
@@ -428,6 +430,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f3 -> Expression()
     * f4 -> "]"
     */
+    @Override
     public String visit(ArrayAllocationExpression n, String argu) throws Exception {
         String expr = n.f3.accept(this, argu);
         ClassInfo classInfo = classDeclarations.get(className);
@@ -437,30 +440,22 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return "int[]";
     }
 
-    // /**
-    //  * f0 -> Type()
-    //  * f1 -> Identifier()
-    //  */
-    // @Override
-    // public String visit(FormalParameter n, String argu) throws Exception{
-    //     n.f0.accept(this, argu);
-    //     n.f1.accept(this, argu);
-    //     return null;
-    // }
-
     @Override
     public String visit(ArrayType n, String argu) {
         return "int[]";
     }
 
+    @Override
     public String visit(BooleanType n, String argu) {
         return "boolean";
     }
 
+    @Override
     public String visit(IntegerType n, String argu) {
         return "int";
     }
 
+    @Override
     public String visit(PlusExpression n, String argu) throws Exception{
         String left = null, right = null;
         left = n.f0.accept(this, null);
@@ -475,6 +470,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return "int";
     }
 
+    @Override
     public String visit(MinusExpression n, String argu) throws Exception{
         String left = null, right = null;
         left = n.f0.accept(this, null);
@@ -488,7 +484,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         }
         return "int";
     }
-
+    @Override
     public String visit(TimesExpression n, String argu) throws Exception{
         String left = null, right = null;
         left = n.f0.accept(this, null);
@@ -510,6 +506,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f2 -> PrimaryExpression()
     * f3 -> "]"
     */
+    @Override
     public String visit(ArrayLookup n, String argu) throws Exception{
         String value = n.f0.accept(this, argu);
         String valueValue = value;
@@ -536,6 +533,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     * f5 -> Expression()
     * f6 -> ";"
     */
+    @Override
     public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
         ClassInfo classInfo = classDeclarations.get(className);
         String identifier = n.f0.accept(this, argu);
@@ -553,7 +551,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return null;
     }
 
-
+    @Override
     public String visit(ArrayLength n, String argu) throws Exception{ 
         String value = n.f0.accept(this, argu);
         String valueValue = value;
@@ -564,19 +562,19 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         }
         return "int";
     }
-
+    @Override
     public String visit(IntegerLiteral n, String argu) {
         return "int";
     }
-
+    @Override
     public String visit(TrueLiteral n, String argu) {
         return "boolean";
     }
-
+    @Override
     public String visit(FalseLiteral n, String argu) {
         return "boolean";
     }
-
+    @Override
     public String visit(ThisExpression n, String argu) {
         return n.f0.toString();
     }
