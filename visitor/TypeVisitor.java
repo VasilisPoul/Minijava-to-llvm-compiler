@@ -97,7 +97,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     }
 
     public String valueType(String checkThis, ClassInfo classInfo){
-        //check parents
         if (checkThis.equals("this")) checkThis = className;
         else if (classInfo.methods.containsKey(methodName) 
                  && containsArg(classInfo.methods.get(methodName).args, checkThis)){
@@ -116,10 +115,10 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         }
         else if(checkThis.equals(className)) return className;
         else if(classDeclarations.containsKey(checkThis)) return checkThis;
-        else if(/*int_lit*/ checkThis.matches("^[0-9]+$")){
+        else if(checkThis.matches("^[0-9]+$")){
             checkThis = "int";
         }
-        else if(/*bool*/ checkThis.equals("true") || checkThis.equals("false")){
+        else if(checkThis.equals("true") || checkThis.equals("false")){
             checkThis = "boolean";
         }
         else if(checkThis.equals("int")){
@@ -134,7 +133,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         else if(checkThis.equals("boolean[]")){
             checkThis = "boolean[]";
         }
-        //check this for inf loop
         else if(classInfo.parent != null){
             
             classInfo = classDeclarations.get(classInfo.parent);
@@ -143,7 +141,22 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         else throw new RuntimeException(checkThis + " not valid");
         return checkThis;
     }
-
+    
+    boolean isParent(String parent, String child){
+        ClassInfo childClassInfo = null;
+        if(parent.equals(child)) return false;
+        if(classDeclarations.containsKey(child))
+            childClassInfo = classDeclarations.get(child);
+        if (childClassInfo != null){
+            while(childClassInfo.parent != null){
+                if (childClassInfo.parent.equals(parent)){
+                    return true;
+                }
+                childClassInfo = classDeclarations.get(childClassInfo.parent);
+            }
+        }
+        return false;
+    }
 
     /**
      * f0 -> "class"
@@ -231,12 +244,13 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         ClassInfo classInfo = classDeclarations.get(className);
         String retType = valueType(n.f10.accept(this, argu), classInfo);
         if (!retType.equals(methodType)){
-            throw new RuntimeException(
-                "Wrong return type: " 
-                + retType 
-                + " Should be: " 
-                + methodType
-            );
+            if (!isParent(methodType, retType))
+                throw new RuntimeException(
+                    "Wrong return type: " 
+                    + retType 
+                    + " Should be: " 
+                    + methodType
+                );
         }
         ClassInfo oldClassInfo = classInfo;
         if (classInfo.parent != null){
@@ -312,21 +326,6 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         return null;
     }
 
-    boolean isParent(String parent, String child){
-        ClassInfo childClassInfo = null;
-        if(parent.equals(child)) return false;
-        if(classDeclarations.containsKey(child))
-            childClassInfo = classDeclarations.get(child);
-        if (childClassInfo != null){
-            while(childClassInfo.parent != null){
-                if (childClassInfo.parent.equals(parent)){
-                    return true;
-                }
-                childClassInfo = classDeclarations.get(childClassInfo.parent);
-            }
-        }
-        return false;
-    }
 
     /**
      * f0 -> Identifier()

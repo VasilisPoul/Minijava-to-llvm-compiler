@@ -23,32 +23,32 @@ public class DeclVisitor extends GJDepthFirst<String, Void>{
         return false;
     }
 
-    public void printMap(){
-         //print map
-         for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
+    // public void printMap(){
+    //      //print map
+    //      for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
             
-            System.out.println("Class name: " + entry.getValue().name);
-            System.out.println("Class parent name: " + entry.getValue().parent);
-            for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
-                System.out.println("\n\tField Name: " + entry1.getValue().name);
-                System.out.println("\tField Type: " + entry1.getValue().type +"\n");            
-            }
-            for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
-                System.out.println("\n\tMethod Name: " + entry1.getValue().name);
-                System.out.println("\tMethod Type: " + entry1.getValue().type);
-                System.out.printf("\tMethod Args: ");
-                for (VarClass varClass: entry1.getValue().args){
-                    System.out.printf("[" + varClass.type + " " + varClass.name + "] ");
-                }
-                System.out.println();
-                for (Map.Entry<String, VarClass> entry2 : entry1.getValue().vars.entrySet()) {
-                    System.out.println("\n\t\tVar Name: " + entry2.getValue().name);
-                    System.out.println("\t\tVar Type: " + entry2.getValue().type + "\n");
-                }   
-            }
-            System.out.println("============================================\n");
-        }
-    }
+    //         System.out.println("Class name: " + entry.getValue().name);
+    //         System.out.println("Class parent name: " + entry.getValue().parent);
+    //         for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
+    //             System.out.println("\n\tField Name: " + entry1.getValue().name);
+    //             System.out.println("\tField Type: " + entry1.getValue().type +"\n");            
+    //         }
+    //         for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
+    //             System.out.println("\n\tMethod Name: " + entry1.getValue().name);
+    //             System.out.println("\tMethod Type: " + entry1.getValue().type);
+    //             System.out.printf("\tMethod Args: ");
+    //             for (VarClass varClass: entry1.getValue().args){
+    //                 System.out.printf("[" + varClass.type + " " + varClass.name + "] ");
+    //             }
+    //             System.out.println();
+    //             for (Map.Entry<String, VarClass> entry2 : entry1.getValue().vars.entrySet()) {
+    //                 System.out.println("\n\t\tVar Name: " + entry2.getValue().name);
+    //                 System.out.println("\t\tVar Type: " + entry2.getValue().type + "\n");
+    //             }   
+    //         }
+    //         System.out.println("============================================\n");
+    //     }
+    // }
 
     /**
      * f0 -> "class"
