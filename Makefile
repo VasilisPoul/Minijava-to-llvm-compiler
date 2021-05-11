@@ -7,4 +7,5 @@ compile:
 
 clean:
 	rm -f *.class *~
+	rm -f visitor/*.class visitor/*~
 
