@@ -1,4 +1,4 @@
- # Compilers - Homework 1
+ # Compilers - Homework 2
 
 ### Βασίλειος Πουλόπουλος - 1115201600141
 
