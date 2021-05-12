@@ -10,7 +10,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) throws Exception {
         if(args.length < 1){
-            System.err.println("Usage: java Main <inputFile> <inputFile> ...");
+            System.err.println("Usage: java Main <inputFile-1> <inputFile-2> ... <inputFile-n>");
             System.exit(1);
         }
         for(int i = 0; i < args.length; i++){
