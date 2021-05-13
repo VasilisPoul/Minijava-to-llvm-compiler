@@ -551,7 +551,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         if (!valueType(expr, classInfo).equals("int") ){
             throw new RuntimeException("Index: "+ expr +" is not int");
         }
-        String expr1 = n.f5.accept(this, mull);
+        String expr1 = n.f5.accept(this, null);
         if (!valueType(expr1, classInfo).equals("int") ){
             throw new RuntimeException("Value: "+ expr1 +" is not int");
         }
