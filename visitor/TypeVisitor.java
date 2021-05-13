@@ -326,7 +326,9 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(VarDeclaration n, String argu) throws Exception {
-        n.f0.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        String type = n.f0.accept(this, null);
+        type = valueType(type, classInfo);
         n.f1.accept(this, null);
         return null;
     }
@@ -712,6 +714,23 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         }
         n.f4.accept(this, null);
         n.f6.accept(this, null);
+        return null;
+    }
+
+    /**
+    * f0 -> "while"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    */
+    public String visit(WhileStatement n, String argu) throws Exception {
+        String ifExpr = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(ifExpr, classInfo).equals("boolean")){
+            throw new RuntimeException("While expression is not boolean");
+        }
+        n.f4.accept(this, argu);
         return null;
     }
 }
