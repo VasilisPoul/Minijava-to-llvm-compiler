@@ -180,7 +180,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(MainClass n, String argu) throws Exception {
-        className = n.f1.accept(this, argu);
+        className = n.f1.accept(this, null);
         methodName = "main";
         super.visit(n, argu);
         className = null;
@@ -198,8 +198,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(ClassDeclaration n, String argu) throws Exception {
-        className = n.f1.accept(this, argu);
-        super.visit(n, argu);
+        className = n.f1.accept(this, null);
+        super.visit(n, null);
         className = null;
         return null;
     }
@@ -216,8 +216,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(ClassExtendsDeclaration n, String argu) throws Exception {
-        className = n.f1.accept(this, argu);
-        super.visit(n, argu);
+        className = n.f1.accept(this, null);
+        super.visit(n, null);
         className = null;
         return null;
     }
@@ -239,10 +239,10 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(MethodDeclaration n, String argu) throws Exception {
-        String methodType = n.f1.accept(this, argu);
-        methodName = n.f2.accept(this, argu);
+        String methodType = n.f1.accept(this, null);
+        methodName = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        String retType = valueType(n.f10.accept(this, argu), classInfo);
+        String retType = valueType(n.f10.accept(this, null), classInfo);
         if (!retType.equals(methodType)){
             if (!isParent(methodType, retType))
                 throw new RuntimeException(
@@ -256,6 +256,11 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
         if (classInfo.parent != null){
             classInfo = classDeclarations.get(classInfo.parent);
             if (classInfo.methods.containsKey(methodName)){
+                if (!classInfo.methods.get(methodName).type.equals( oldClassInfo.methods.get(methodName).type)){
+                    throw new RuntimeException(
+                        "Wrong override because of wrong type."
+                    );
+                }
                 if (classInfo.methods.get(methodName).args.size() != oldClassInfo.methods.get(methodName).args.size()){
                     throw new RuntimeException(
                         "Wrong override because of wrong parameters list size."
@@ -271,7 +276,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             }
         }
         classInfo = oldClassInfo;
-        super.visit(n, argu);
+        super.visit(n, null);
         methodName = null;
         return null;
     }
@@ -282,10 +287,10 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(FormalParameterList n, String argu) throws Exception {
-        String ret = n.f0.accept(this, argu);
+        String ret = n.f0.accept(this, null);
 
         if (n.f1 != null) {
-            ret += n.f1.accept(this, argu);
+            ret += n.f1.accept(this, null);
         }
 
         return ret;
@@ -296,7 +301,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
      * f1 -> FormalParameterTail()
      */
     public String visit(FormalParameterTerm n, String argu) throws Exception {
-        return n.f1.accept(this, argu);
+        return n.f1.accept(this, null);
     }
 
     /**
@@ -307,7 +312,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     public String visit(FormalParameterTail n, String argu) throws Exception {
         String ret = "";
         for ( Node node: n.f0.nodes) {
-            ret += ", " + node.accept(this, argu);
+            ret += ", " + node.accept(this, null);
         }
 
         return ret;
@@ -321,8 +326,8 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(VarDeclaration n, String argu) throws Exception {
-        n.f0.accept(this, argu);
-        n.f1.accept(this, argu);
+        n.f0.accept(this, null);
+        n.f1.accept(this, null);
         return null;
     }
 
@@ -357,7 +362,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
             + expr_type+ "\""
         );
     }
-    super.visit(n, argu);
+    super.visit(n, null);
     return null;
  }
 
@@ -373,7 +378,10 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     public String visit(MessageSend n, String argu) throws Exception {
         String prim_expr = n.f0.accept(this, null);
         prim_expr = prim_expr.equals("this") ? className : prim_expr;
-        
+        ClassInfo ci = classDeclarations.get(className);
+        if (valueType(prim_expr, ci).equals("int") || valueType(prim_expr, ci).equals("boolean") || valueType(prim_expr, ci).equals("int[]")){
+            throw new RuntimeException("primary expression is not class");
+        }
         ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
                             ? classDeclarations.get(prim_expr) 
                             : classDeclarations.get(
@@ -419,7 +427,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(AllocationExpression n, String argu) throws Exception {
-        return n.f1.accept(this, argu);
+        return n.f1.accept(this, null);
     }
   
        /**
@@ -431,7 +439,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(ArrayAllocationExpression n, String argu) throws Exception {
-        String expr = n.f3.accept(this, argu);
+        String expr = n.f3.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
         if(!valueType(expr, classInfo).equals("int")){
             throw new RuntimeException("Expression is not int");
@@ -507,9 +515,9 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(ArrayLookup n, String argu) throws Exception{
-        String value = n.f0.accept(this, argu);
+        String value = n.f0.accept(this, null);
         String valueValue = value;
-        String index = n.f2.accept(this, argu);
+        String index = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
         value = valueType(value, classInfo);
         if (!value.equals("int[]")){
@@ -535,15 +543,15 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
         ClassInfo classInfo = classDeclarations.get(className);
-        String identifier = n.f0.accept(this, argu);
+        String identifier = n.f0.accept(this, null);
         if (!valueType(identifier, classInfo).equals("int[]") ){
             throw new RuntimeException("Value: "+ identifier +" is not int[]");
         }
-        String expr = n.f2.accept(this, argu);
+        String expr = n.f2.accept(this, null);
         if (!valueType(expr, classInfo).equals("int") ){
             throw new RuntimeException("Index: "+ expr +" is not int");
         }
-        String expr1 = n.f5.accept(this, argu);
+        String expr1 = n.f5.accept(this, mull);
         if (!valueType(expr1, classInfo).equals("int") ){
             throw new RuntimeException("Value: "+ expr1 +" is not int");
         }
@@ -552,7 +560,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
 
     @Override
     public String visit(ArrayLength n, String argu) throws Exception{ 
-        String value = n.f0.accept(this, argu);
+        String value = n.f0.accept(this, null);
         String valueValue = value;
         ClassInfo classInfo = classDeclarations.get(className);
         value = valueType(value, classInfo);
@@ -590,7 +598,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(BracketExpression n, String argu) throws Exception {
-        return n.f1.accept(this, argu);
+        return n.f1.accept(this, null);
     }
 
     /**
@@ -606,7 +614,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(Expression n, String argu) throws Exception {
-        String value = n.f0.accept(this, argu);
+        String value = n.f0.accept(this, null);
         String type = null;
         ClassInfo classInfo = classDeclarations.get(className);
         if(argu != null && argu.equals("flagList")){
@@ -626,7 +634,7 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(PrintStatement n, String argu) throws Exception {
 
-        String printExpr = n.f2.accept(this, argu);
+        String printExpr = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
         if (!valueType(printExpr, classInfo).equals("int")){
             throw new RuntimeException(
@@ -678,7 +686,32 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
     */
     public String visit(NotExpression n, String argu) throws Exception {
         ClassInfo classInfo = classDeclarations.get(className);
-        String checkThis = n.f1.accept(this, argu);
-        return valueType(checkThis, classInfo);
+        String checkThis = n.f1.accept(this, null);
+        String type = valueType(checkThis, classInfo);
+        if (!type.equals("boolean")){
+            throw new RuntimeException(checkThis + " not boolean");
+        }
+        return type;
+    }
+
+
+    /**
+    * f0 -> "if"
+    * f1 -> "("
+    * f2 -> Expression()
+    * f3 -> ")"
+    * f4 -> Statement()
+    * f5 -> "else"
+    * f6 -> Statement()
+    */
+    public String visit(IfStatement n, String argu) throws Exception {
+        String ifExpr = n.f2.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(className);
+        if (!valueType(ifExpr, classInfo).equals("boolean")){
+            throw new RuntimeException("If expression is not boolean");
+        }
+        n.f4.accept(this, null);
+        n.f6.accept(this, null);
+        return null;
     }
 }
