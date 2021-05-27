@@ -4,3 +4,4 @@ visitor/*.class
 .vscode/ 
 test-files/
 llvm-examples/
+out.ll
