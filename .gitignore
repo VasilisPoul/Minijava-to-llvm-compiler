@@ -3,3 +3,4 @@ test-files/*.class
 visitor/*.class
 .vscode/ 
 test-files/
+llvm-examples/
