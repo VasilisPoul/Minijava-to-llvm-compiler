@@ -10,6 +10,7 @@ public class ClassInfo {
 	public LinkedHashMap<String,VarClass> fields;
 	public LinkedHashMap<String,Integer> fieldOffsets;
 	public LinkedHashMap<String,Integer> methodOffsets;
+	public LinkedHashMap<String,TableInfo> methodTable;
 
 
 	public ClassInfo(String name, String parent) {

@@ -26,37 +26,36 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             }
             else {
                 writer.write(
-                    entry.getValue().methods.size()
+                    entry.getValue().methodTable.size()
                     + " x i8*]"
                 );
             }
             int index = 0; 
             writer.write(" [");
-            for(Map.Entry<String, MethodClass> methodEntry : entry.getValue().methods.entrySet()){
-                if ((methodEntry.getValue().name).equals("main")){
+            generateVtMap();
+            for(Map.Entry<String, TableInfo> methodEntry : entry.getValue().methodTable.entrySet()){
+                if ((methodEntry.getValue().method.name).equals("main")){
                     continue;
                 }
                 String type;
                 
                 writer.write(
                     "i8* bitcast ("
-                    + llvmType(methodEntry.getValue().type)
+                    + llvmType(methodEntry.getValue().method.type)
                     + " (i8*"
                 );
-                if (methodEntry.getValue().args.size() > 0){
+                if (methodEntry.getValue().method.args.size() > 0){
                     writer.write(",");
                 }
-                for (int i = 0; i < methodEntry.getValue().args.size(); i++){
-                    writer.write(llvmType(methodEntry.getValue().args.get(i).type));
-                    if (i < methodEntry.getValue().args.size() - 1){
+                for (int i = 0; i < methodEntry.getValue().method.args.size(); i++){
+                    writer.write(llvmType(methodEntry.getValue().method.args.get(i).type));
+                    if (i < methodEntry.getValue().method.args.size() - 1){
                         writer.write(",");
                     }
                 }
                 writer.write(
                     ")* @"
-                    + entry.getValue().name
-                    + "."
-                    + methodEntry.getValue().name
+                    + methodEntry.getValue().value
                     + " to i8*)"
                 );
                 if (index < entry.getValue().methods.size() - 1){
@@ -105,7 +104,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return type;
     }
 
-    public void generateOffsets(){
+    public void generateVtMap(){
         for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
             ClassInfo currentClass = entry.getValue();
             Stack<ClassInfo> classStack = new Stack<ClassInfo>();
@@ -114,36 +113,13 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 currentClass = classDeclarations.get(currentClass.parent);
             } while (currentClass != null);
             
-            int fieldOffset = 0;
-            entry.getValue().fieldOffsets = new LinkedHashMap<>();
-            int methodOffset = 0;
-            entry.getValue().methodOffsets = new LinkedHashMap<>();
-            LinkedHashMap<String,Integer> parentMethodOffsets = new LinkedHashMap<>();
+            entry.getValue().methodTable = new LinkedHashMap<>();
             while(classStack.size() != 0){
                 ClassInfo classInfo = classStack.pop();
-                for(Map.Entry<String,VarClass> fieldEntry : classInfo.fields.entrySet()){
-                    VarClass currentField = fieldEntry.getValue();
-                    if (classStack.size() == 0)
-                        entry.getValue().fieldOffsets.put(currentField.name, fieldOffset);
-                    fieldOffset += currentField.size;
-                }    
                 for(Map.Entry<String,MethodClass> methodEntry : classInfo.methods.entrySet()){
                     MethodClass currentMethod = methodEntry.getValue();
-                    if (currentMethod.name.equals("main")){
-                        break;
-                    }
-                    if(!parentMethodOffsets.containsKey(currentMethod.name) && classStack.size() > 0) 
-                        parentMethodOffsets.put(currentMethod.name, methodOffset);
-                    if(classStack.size() == 0){
-                        if(parentMethodOffsets.containsKey(currentMethod.name)){
-                            continue;
-                            // entry.getValue().methodOffsets.put(currentMethod.name, allMethodOffsets.get(currentMethod.name));
-                        }   
-                        else{
-                            entry.getValue().methodOffsets.put(currentMethod.name, methodOffset);
-                        }
-                    }
-                    methodOffset += 8;
+                    // if(!entry.getValue().methodTable.containsKey(currentMethod.name))
+                        entry.getValue().methodTable.put(currentMethod.name, new TableInfo(methodEntry.getValue(), classInfo.name+"."+currentMethod.name));
                 }
             }
 
