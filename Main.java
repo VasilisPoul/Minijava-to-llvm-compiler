@@ -45,6 +45,8 @@ public class Main {
                         System.out.println(currentClass.name + "." + methodOffsets.getKey()+": "+methodOffsets.getValue());
                     }
                 }
+                llvmVisitor llvm = new llvmVisitor(type.classDeclarations, "out.ll");
+                llvm.writer.close();
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());
