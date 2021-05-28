@@ -84,7 +84,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             +     "\tcall i32 (i8*, ...) @printf(i8* %_str)\n"
             +     "\tcall void @exit(i32 1)\n"
             +     "\tret void\n"
-            + "}\n"
+            + "}\n\n"
         );
     }
 
@@ -249,9 +249,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(MainClass n, String argu) throws Exception {
         className = n.f1.accept(this, null);
         methodName = "main";
+        writer.write("define i32 @main() {\n");
         super.visit(n, argu);
         className = null;
         methodName = null;
+        writer.write("}\n\n");
         return null;
     }
 
@@ -308,42 +310,27 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(MethodDeclaration n, String argu) throws Exception {
         String methodType = n.f1.accept(this, null);
         methodName = n.f2.accept(this, null);
+        writer.write(
+            "define "
+            + llvmType(methodType)
+            + " @"
+            + methodName
+            + "(i8* %this"  
+        );
         ClassInfo classInfo = classDeclarations.get(className);
+        n.f4.accept(this, argu);
+        writer.write(") {\n");
+        n.f7.accept(this, argu);
+        n.f8.accept(this, argu);
+        // n.f9.accept(this, argu);
+        n.f10.accept(this, argu);
         String retType = valueType(n.f10.accept(this, null), classInfo);
-        if (!retType.equals(methodType)){
-            if (!isParent(methodType, retType))
-                throw new RuntimeException(
-                    "Wrong return type: " 
-                    + retType 
-                    + " Should be: " 
-                    + methodType
-                );
-        }
-        ClassInfo oldClassInfo = classInfo;
-        if (classInfo.parent != null){
-            classInfo = classDeclarations.get(classInfo.parent);
-            if (classInfo.methods.containsKey(methodName)){
-                if (!classInfo.methods.get(methodName).type.equals( oldClassInfo.methods.get(methodName).type)){
-                    throw new RuntimeException(
-                        "Wrong override because of wrong type."
-                    );
-                }
-                if (classInfo.methods.get(methodName).args.size() != oldClassInfo.methods.get(methodName).args.size()){
-                    throw new RuntimeException(
-                        "Wrong override because of wrong parameters list size."
-                    );
-                }
-                for (int j = 0; j < classInfo.methods.get(methodName).args.size(); j++){
-                    if (!classInfo.methods.get(methodName).args.get(j).type.equals(oldClassInfo.methods.get(methodName).args.get(j).type)){
-                        throw new RuntimeException(
-                            "Wrong override because of wrong parameters types."
-                        );
-                    }
-                }
-            }
-        }
-        classInfo = oldClassInfo;
-        super.visit(n, null);
+        writer.write(
+            "\tret "
+            + llvmType(methodType)
+            + "\n"
+            + "}\n"
+        );
         methodName = null;
         return null;
     }
@@ -355,7 +342,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(FormalParameterList n, String argu) throws Exception {
         String ret = n.f0.accept(this, null);
-
         if (n.f1 != null) {
             ret += n.f1.accept(this, null);
         }
@@ -800,4 +786,21 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         n.f4.accept(this, argu);
         return null;
     }
+
+       /**
+    * f0 -> Type()
+    * f1 -> Identifier()
+    */
+   public String visit(FormalParameter n, String argu) throws Exception {
+    String type = n.f0.accept(this, argu);
+    String identifier = n.f1.accept(this, argu);
+    writer.write(
+        ", "
+        + llvmType(type)
+        + " %." 
+        + identifier
+    );
+    return null;
+ }
+
 }

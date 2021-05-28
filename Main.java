@@ -47,6 +47,7 @@ public class Main {
                 }
                 String filename = args[i].replaceFirst("[.][^.]+$", "");
                 llvmVisitor llvm = new llvmVisitor(type.classDeclarations, filename + ".ll");
+                root.accept(llvm, null);
                 llvm.writer.close();
             }
             catch(ParseException ex){
