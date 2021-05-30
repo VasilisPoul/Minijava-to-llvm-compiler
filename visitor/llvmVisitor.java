@@ -144,25 +144,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return null;
     }
     
-    public void printMap(){
-        //print map
-        System.out.println("============================================");
-        for (Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()) {
-            int field_offset = 0;
-            System.out.println("Class name: " + entry.getValue().name);
-            for (Map.Entry<String, VarClass> entry1 : entry.getValue().fields.entrySet()) {
-                    System.out.println("\t"+ entry1.getValue().name + ": "+ field_offset);
-                    field_offset = field_offset + entry1.getValue().size;            
-            }
-            int method_offset = 0;
-            for (Map.Entry<String, MethodClass> entry1 : entry.getValue().methods.entrySet()) {
-                System.out.println("\t"+ entry1.getValue().name + ": "+ method_offset);
-                method_offset = method_offset + 8;
-            }
-            System.out.println("============================================");
-        }
-    }
-
     public String valueType(String checkThis, ClassInfo classInfo){
         if (checkThis.equals("this")) checkThis = className;
         else if (classInfo.methods.containsKey(methodName) 
@@ -324,7 +305,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         n.f8.accept(this, argu);
         // n.f9.accept(this, argu);
         n.f10.accept(this, argu);
-        String retType = valueType(n.f10.accept(this, null), classInfo);
         writer.write(
             "\tret "
             + llvmType(methodType)
@@ -379,10 +359,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(VarDeclaration n, String argu) throws Exception {
-        ClassInfo classInfo = classDeclarations.get(className);
-        String type = n.f0.accept(this, null);
-        type = valueType(type, classInfo);
-        n.f1.accept(this, null);
+        if (methodName != null){
+
+            ClassInfo classInfo = classDeclarations.get(className);
+            String type = n.f0.accept(this, null);
+            String ident = n.f1.accept(this, null);
+            writer.write(
+                "\t%"
+                + ident
+                + " = alloca "
+                + llvmType(type)
+                +"\n"
+            );
+        }
         return null;
     }
 
@@ -400,24 +389,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     //check if expr is Class
     String expr_type;
     ClassInfo classInfo = classDeclarations.get(className);
-    if(classDeclarations.containsKey(expr)){
-        expr_type = expr;
-    }
-    else{
-        expr_type = valueType(expr, classInfo);
-    }
-    String ident_type = valueType(identifier, classInfo); 
-    if(isParent(ident_type, expr_type))
-        expr_type = ident_type;
-    if(!ident_type.equals(expr_type)){
-        throw new RuntimeException(
-            "Wrong type: Identifier type \""
-            + ident_type
-            + "\", expression type \""
-            + expr_type+ "\""
-        );
-    }
-    super.visit(n, null);
+    // if(classDeclarations.containsKey(expr)){
+    //     expr_type = expr;
+    // }
+    // else{
+    //     expr_type = valueType(expr, classInfo);
+    // }
+    // String ident_type = valueType(identifier, classInfo); 
+    
+    // super.visit(n, null);
     return null;
  }
 
@@ -434,42 +414,14 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String prim_expr = n.f0.accept(this, null);
         prim_expr = prim_expr.equals("this") ? className : prim_expr;
         ClassInfo ci = classDeclarations.get(className);
-        if (valueType(prim_expr, ci).equals("int") || valueType(prim_expr, ci).equals("boolean") || valueType(prim_expr, ci).equals("int[]")){
-            throw new RuntimeException("primary expression is not class");
-        }
+        
         ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
                             ? classDeclarations.get(prim_expr) 
                             : classDeclarations.get(
                                 valueType(prim_expr, classDeclarations.get(className))
                               );
         String identifier = n.f2.accept(this, null);
-        ArrayList<VarClass> prevArgList = argList;
-        if(classInfo.methods.containsKey(identifier)){
-
-            ArrayList<VarClass> methodargs = classInfo.methods.get(identifier).args;
-            
-            argList = new ArrayList<VarClass>();
-            n.f4.accept(this, "flagList");
-            if (methodargs.size() != argList.size()){
-                throw new RuntimeException(
-                    identifier
-                    + "'s call has invalid num of args"
-                );
-            }
-            for (int j = 0; j < methodargs.size(); j++){
-                if (!methodargs.get(j).type.equals(argList.get(j).type) 
-                && !isParent(methodargs.get(j).type, argList.get(j).type)){
-                    throw new RuntimeException(
-                        identifier+"'s "+ (j+1) 
-                        + " arg should be " 
-                        + methodargs.get(j).type 
-                        + " but is " 
-                        + argList.get(j).type
-                    );
-                }
-            }
-        }
-        argList = prevArgList;
+        
         return valueType(identifier, classInfo);
     }
 
@@ -482,7 +434,49 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(AllocationExpression n, String argu) throws Exception {
-        return n.f1.accept(this, null);
+
+        String ident = n.f1.accept(this, null);
+        ClassInfo classInfo = classDeclarations.get(ident);
+        int offset = 0;
+        int method_offset = 0;
+        for (Map.Entry<String, Integer> entry : classInfo.fieldOffsets.entrySet()){
+            offset = entry.getValue();
+        }
+        int i = 0;
+        method_offset = classInfo.methods.size();
+        
+        offset += 8;
+        int newVar1 = newVar++;
+        int newVar2 = newVar++;
+        int newVar3 = newVar++;
+        writer.write(
+            "\t%_"
+            + newVar1
+            + " = call i8* @calloc(i32 1, i32 "
+            + offset
+            + ")\n"
+            + "\t%_"
+            + newVar2
+            + " = bitcast i8* %_"
+            + newVar1
+            + " to i8***\n"
+            + "\t%_"
+            + newVar3
+            + " = getelementptr ["
+            + method_offset
+            + " x i8*], ["
+            + method_offset 
+            + " x i8*]* @."
+            + ident
+            + "_vtable, i32 0, i32 0\n"
+            + "\tstore i8** %_"
+            + newVar3
+            + ", i8*** %_"
+            + newVar2
+            + "\n"
+        );
+
+        return ident;
     }
   
        /**
@@ -496,9 +490,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(ArrayAllocationExpression n, String argu) throws Exception {
         String expr = n.f3.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        if(!valueType(expr, classInfo).equals("int")){
-            throw new RuntimeException("Expression is not int");
-        }
+        
         return "int[]";
     }
 
@@ -587,14 +579,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String valueValue = value;
         String index = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        value = valueType(value, classInfo);
-        if (!value.equals("int[]")){
-            throw new RuntimeException("Value: "+ valueValue+" is not int[]");
-        }
-        String indexType = valueType(index, classInfo);
-        if (!indexType.equals("int")){
-            throw new RuntimeException("Index: "+ index+" is not int");
-        }
+        
         return "int";
     }
 
@@ -612,17 +597,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
         ClassInfo classInfo = classDeclarations.get(className);
         String identifier = n.f0.accept(this, null);
-        if (!valueType(identifier, classInfo).equals("int[]") ){
-            throw new RuntimeException("Value: "+ identifier +" is not int[]");
-        }
-        String expr = n.f2.accept(this, null);
-        if (!valueType(expr, classInfo).equals("int") ){
-            throw new RuntimeException("Index: "+ expr +" is not int");
-        }
-        String expr1 = n.f5.accept(this, null);
-        if (!valueType(expr1, classInfo).equals("int") ){
-            throw new RuntimeException("Value: "+ expr1 +" is not int");
-        }
+       
         return null;
     }
 
@@ -631,10 +606,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String value = n.f0.accept(this, null);
         String valueValue = value;
         ClassInfo classInfo = classDeclarations.get(className);
-        value = valueType(value, classInfo);
-        if (!value.equals("int[]")){
-            throw new RuntimeException("Value: "+ valueValue+" is not int[]");
-        }
+        
         return "int";
     }
     @Override
@@ -644,7 +616,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         writer.write(
             "\t%_"
             + newVar
-            + "= add i32 0, "
+            + " = add i32 0, "
             + integ
             + "\n"
         );
@@ -653,12 +625,26 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return ret;
     }
     @Override
-    public String visit(TrueLiteral n, String argu) {
-        return "boolean";
+    public String visit(TrueLiteral n, String argu) throws Exception {
+        writer.write(
+            "\t%_"
+            + newVar
+            + " = add i1 0, 1\n"
+        );
+        String ret = "%_" + newVar;
+        newVar++;
+        return ret;
     }
     @Override
-    public String visit(FalseLiteral n, String argu) {
-        return "boolean";
+    public String visit(FalseLiteral n, String argu) throws Exception {
+        writer.write(
+            "\t%_"
+            + newVar
+            + " = add i1 0, 0\n"
+        );
+        String ret = "%_" + newVar;
+        newVar++;
+        return ret;
     }
     @Override
     public String visit(ThisExpression n, String argu) {
@@ -696,10 +682,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String value = n.f0.accept(this, null);
         String type = null;
         ClassInfo classInfo = classDeclarations.get(className);
-        if(argu != null && argu.equals("flagList")){
-            type = valueType(value, classInfo);
-            argList.add(new VarClass(value.toString(), type));
-        }  
+        
         return value;
     }
     
@@ -733,12 +716,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         left = n.f0.accept(this, null);
         right = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(left, classInfo).equals("boolean")){
-            throw new RuntimeException("Left expression is not boolean");
-        }
-        if (!valueType(right, classInfo).equals("boolean")){
-            throw new RuntimeException("Right expression is not boolean");
-        }
+        
         return "boolean";
     }
 
@@ -748,12 +726,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         left = n.f0.accept(this, null);
         right = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(left, classInfo).equals("int")){
-            throw new RuntimeException("Left expression is not int");
-        }
-        if (!valueType(right, classInfo).equals("int")){
-            throw new RuntimeException("Right expression is not int");
-        }
+        
         return "boolean";
     }
 
@@ -765,9 +738,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         ClassInfo classInfo = classDeclarations.get(className);
         String checkThis = n.f1.accept(this, null);
         String type = valueType(checkThis, classInfo);
-        if (!type.equals("boolean")){
-            throw new RuntimeException(checkThis + " not boolean");
-        }
+        
         return type;
     }
 
@@ -784,9 +755,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(IfStatement n, String argu) throws Exception {
         String ifExpr = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(ifExpr, classInfo).equals("boolean")){
-            throw new RuntimeException("If expression is not boolean");
-        }
+       
         n.f4.accept(this, null);
         n.f6.accept(this, null);
         return null;
@@ -802,9 +771,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(WhileStatement n, String argu) throws Exception {
         String ifExpr = n.f2.accept(this, null);
         ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(ifExpr, classInfo).equals("boolean")){
-            throw new RuntimeException("While expression is not boolean");
-        }
+        
         n.f4.accept(this, argu);
         return null;
     }
