@@ -10,7 +10,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String className;
     public String methodName;
     public FileWriter writer;
-
+    public int newVar;
     public llvmVisitor(LinkedHashMap<String, ClassInfo> classDeclarations, String file) throws IOException{
         this.classDeclarations = classDeclarations;
         this.writer = new FileWriter(file);
@@ -253,7 +253,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         super.visit(n, argu);
         className = null;
         methodName = null;
-        writer.write("}\n\n");
+        writer.write("\tret i32 0\n}\n\n");
         return null;
     }
 
@@ -514,6 +514,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
     @Override
     public String visit(IntegerType n, String argu) {
+        
         return "int";
     }
 
@@ -522,14 +523,18 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String left = null, right = null;
         left = n.f0.accept(this, null);
         right = n.f2.accept(this, null);
-        ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(left, classInfo).equals("int")){
-            throw new RuntimeException("Left expression is not int");
-        }
-        if (!valueType(right, classInfo).equals("int")){
-            throw new RuntimeException("Right expression is not int");
-        }
-        return "int";
+        writer.write(
+            "\t%_"
+            + newVar
+            + " = add i32 "
+            + left
+            +", "
+            + right
+            + "\n"
+        );
+        String ret = "%_" + newVar;
+        newVar++;
+        return ret;
     }
 
     @Override
@@ -537,29 +542,37 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String left = null, right = null;
         left = n.f0.accept(this, null);
         right = n.f2.accept(this, null);
-        ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(left, classInfo).equals("int")){
-            throw new RuntimeException("Left expression is not int");
-        }
-        if (!valueType(right, classInfo).equals("int")){
-            throw new RuntimeException("Right expression is not int");
-        }
-        return "int";
+        writer.write(
+            "\t%_"
+            + newVar
+            + " = sub i32 "
+            + left
+            +", "
+            + right
+            + "\n"
+        );
+        String ret = "%_" + newVar;
+        newVar++;
+        return ret;
     }
+
     @Override
     public String visit(TimesExpression n, String argu) throws Exception{
         String left = null, right = null;
         left = n.f0.accept(this, null);
         right = n.f2.accept(this, null);
-        ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(left, classInfo).equals("int")){
-            throw new RuntimeException("Left expression is not int");
-        }
-        if (!valueType(right, classInfo).equals("int")){
-            throw new RuntimeException("Right expression is not int");
-        }
-
-        return "int";
+        writer.write(
+            "\t%_"
+            + newVar
+            + " = mul i32 "
+            + left
+            +", "
+            + right
+            + "\n"
+        );
+        String ret = "%_" + newVar;
+        newVar++;
+        return ret;
     }
 
     /**
@@ -625,8 +638,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "int";
     }
     @Override
-    public String visit(IntegerLiteral n, String argu) {
-        return "int";
+    public String visit(IntegerLiteral n, String argu) throws Exception {
+        String integ =  n.f0.toString();
+        
+        writer.write(
+            "\t%_"
+            + newVar
+            + "= add i32 0, "
+            + integ
+            + "\n"
+        );
+        String ret = "%_" + newVar;
+        newVar++;
+        return ret;
     }
     @Override
     public String visit(TrueLiteral n, String argu) {
@@ -690,13 +714,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(PrintStatement n, String argu) throws Exception {
 
         String printExpr = n.f2.accept(this, null);
-        ClassInfo classInfo = classDeclarations.get(className);
-        if (!valueType(printExpr, classInfo).equals("int")){
-            throw new RuntimeException(
-                "Invalid print expression. Should be int but is "
-                + valueType(printExpr, classInfo)
-            );
-        }
+        writer.write(
+            "\tcall void @print_int(i32 "
+            + printExpr
+            + ")\n"
+        );
         return null;
     }
 
