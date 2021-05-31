@@ -56,10 +56,10 @@ public class Main {
             catch(FileNotFoundException ex){
                 System.err.println(ex.getMessage());
             }
-            catch(Exception ex){
-                System.err.println(ex.getMessage());
+            // catch(Exception ex){
+            //     System.err.println(ex.getMessage());
 
-            }
+            // }
             finally{
                 
                 try{

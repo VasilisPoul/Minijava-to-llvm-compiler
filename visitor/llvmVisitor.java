@@ -1,12 +1,15 @@
 package visitor;
 import syntaxtree.*;
 import java.util.*;
+
+import javax.crypto.spec.IvParameterSpec;
+
 import java.io.FileWriter;
 import java.io.IOException;
 public class llvmVisitor extends GJDepthFirst<String, String>{
 
     public LinkedHashMap<String,ClassInfo> classDeclarations;
-    public ArrayList<VarClass> argList;
+    public ArrayList<String> argList;
     public String className;
     public String methodName;
     public FileWriter writer;
@@ -295,6 +298,8 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             "define "
             + llvmType(methodType)
             + " @"
+            + className
+            + "."
             + methodName
             + "(i8* %this"  
         );
@@ -385,19 +390,29 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(AssignmentStatement n, String argu) throws Exception {
     String identifier = n.f0.accept(this, null);
+
     String expr = n.f2.accept(this, null);
     //check if expr is Class
     String expr_type;
     ClassInfo classInfo = classDeclarations.get(className);
-    // if(classDeclarations.containsKey(expr)){
-    //     expr_type = expr;
-    // }
-    // else{
-    //     expr_type = valueType(expr, classInfo);
-    // }
-    // String ident_type = valueType(identifier, classInfo); 
-    
-    // super.visit(n, null);
+    String var = null, llvm_type = null;
+    if(expr.contains("/")){
+        String[] newStrings = expr.split("/", 2);
+        llvm_type = newStrings[1];
+        var = newStrings[0];
+
+    }
+    writer.write(
+        "\tstore "
+        + llvm_type
+        + " "
+        + var
+        + ", "
+        + llvmType(classDeclarations.get(className).methods.get(methodName).vars.get(identifier).type)
+        + "* %"
+        + identifier
+        + "\n"
+    );
     return null;
  }
 
@@ -412,17 +427,76 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(MessageSend n, String argu) throws Exception {
         String prim_expr = n.f0.accept(this, null);
-        prim_expr = prim_expr.equals("this") ? className : prim_expr;
-        ClassInfo ci = classDeclarations.get(className);
-        
-        ClassInfo classInfo = classDeclarations.containsKey(prim_expr) 
-                            ? classDeclarations.get(prim_expr) 
-                            : classDeclarations.get(
-                                valueType(prim_expr, classDeclarations.get(className))
-                              );
+        String var = null;
+        if(prim_expr.contains("/")){
+            String[] newStrings = prim_expr.split("/", 2);
+            prim_expr = newStrings[1];
+            var = newStrings[0];
+
+        }
         String identifier = n.f2.accept(this, null);
-        
-        return valueType(identifier, classInfo);
+        int offset = classDeclarations.get(prim_expr).methodOffsets.get(identifier)/8;
+        argList = new ArrayList<String>();
+        n.f4.accept(this, "flagList");
+        String llvmType = llvmType(classDeclarations.get(prim_expr).methods.get(identifier).type);
+        writer.write(
+            "\t%_"
+            + newVar++
+            + " = bitcast i8* "
+            + var
+            + " to i8***\n"
+            + "\t%_"
+            + newVar++
+            + " = load i8**, i8*** %_"
+            + (newVar - 2)
+            + "\n\t%_" 
+            + newVar++
+            + " = getelementptr i8*, i8** %_"
+            + (newVar - 2)
+            + ", i32 "
+            + offset
+            + "\n\t%_"
+            + newVar++
+            + " = load i8*, i8** %_"
+            + (newVar - 2)
+            + "\n\t%_"
+            + newVar++
+            + " = bitcast i8* %_"
+            + (newVar - 2)
+            + " to "
+            + llvmType
+            + " (i8*"
+        );
+        String llvm_type = null;
+        for (int i = 0; i < classDeclarations.get(prim_expr).methods.get(identifier).args.size(); i++){
+            llvm_type = llvmType(classDeclarations.get(prim_expr).methods.get(identifier).args.get(i).type);
+            writer.write(
+                ", "
+                + llvm_type
+            );
+        }
+        writer.write(
+            ")*\n\t%_"
+            + newVar++
+            + " = call "
+            + llvmType
+            + "%_"
+            + (newVar - 2)
+            + " (i8* "
+            + var
+        );
+        for (int i = 0; i < classDeclarations.get(prim_expr).methods.get(identifier).args.size(); i++){
+            llvm_type = llvmType(classDeclarations.get(prim_expr).methods.get(identifier).args.get(i).type);
+            writer.write(
+                ", "
+                + llvm_type
+                + " "
+                + argList.get(i)
+            );
+        }
+        writer.write(")\n");
+
+        return "%_" + String.valueOf(newVar-1)+"/"+llvmType;
     }
 
 
@@ -439,10 +513,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         ClassInfo classInfo = classDeclarations.get(ident);
         int offset = 0;
         int method_offset = 0;
-        for (Map.Entry<String, Integer> entry : classInfo.fieldOffsets.entrySet()){
-            offset = entry.getValue();
-        }
         int i = 0;
+        for (Map.Entry<String, Integer> entry : classInfo.fieldOffsets.entrySet()){
+            
+            if (i == classInfo.fieldOffsets.size() - 1){
+                offset = entry.getValue();
+                offset += classInfo.fields.get(entry.getKey()).size;
+            }
+            i++;
+        }
         method_offset = classInfo.methods.size();
         
         offset += 8;
@@ -476,7 +555,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + "\n"
         );
 
-        return ident;
+        return "%_"+String.valueOf(newVar1)+"/"+ident;
     }
   
        /**
@@ -665,27 +744,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(BracketExpression n, String argu) throws Exception {
         return n.f1.accept(this, null);
     }
-
-    /**
-    * f0 -> AndExpression()
-    *       | CompareExpression()
-    *       | PlusExpression()
-    *       | MinusExpression()
-    *       | TimesExpression()
-    *       | ArrayLookup()
-    *       | ArrayLength()
-    *       | MessageSend()
-    *       | PrimaryExpression()
-    */
-    @Override
-    public String visit(Expression n, String argu) throws Exception {
-        String value = n.f0.accept(this, null);
-        String type = null;
-        ClassInfo classInfo = classDeclarations.get(className);
-        
-        return value;
-    }
-    
        /**
     * f0 -> "System.out.println"
     * f1 -> "("
@@ -791,5 +849,49 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     );
     return null;
  }
+
+    /**
+    * f0 -> Expression()
+    * f1 -> ExpressionTail()
+    */
+    @Override
+    public String visit(ExpressionList n, String argu) throws Exception {
+
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        return null;
+    }
+
+    /**
+    * f0 -> AndExpression()
+    *       | CompareExpression()
+    *       | PlusExpression()
+    *       | MinusExpression()
+    *       | TimesExpression()
+    *       | ArrayLookup()
+    *       | ArrayLength()
+    *       | MessageSend()
+    *       | PrimaryExpression()
+    */
+    @Override
+    public String visit(Expression n, String argu) throws Exception {
+        String value = n.f0.accept(this, null);
+        if(argu != null && argu.equals("flagList")){
+            argList.add(value);
+        }  
+        return value;
+    }
+    
+
+    /**
+    * f0 -> ","
+    * f1 -> Expression()
+    */
+   public String visit(ExpressionTerm n, String argu) throws Exception {
+    n.f0.accept(this, argu);
+    n.f1.accept(this, argu);
+    return null;
+ }
+
 
 }
