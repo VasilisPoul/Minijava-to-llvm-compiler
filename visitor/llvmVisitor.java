@@ -256,7 +256,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 "\t%_"
                 + newVar++
                 + " = getelementptr i8, i8* %this, i32 "
-                + offset
+                + (offset+8)
                 +"\n\t%_"
                 + newVar++
                 + " = bitcast i8* %_"
@@ -398,7 +398,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             "\t%_"
             + newVar++
             + " = getelementptr i8, i8* %this, i32 "
-            + offset
+            + (offset + 8)
             +"\n\t%_"
             + newVar++
             + " = bitcast i8* %_"
