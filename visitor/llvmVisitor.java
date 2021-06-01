@@ -129,15 +129,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         }
     }
 
-    public Boolean containsArg(ArrayList<VarClass> array, String name){
-        for (VarClass varClass: array){
-            if (varClass.name.equals(name)){
-                return true;
-            }
-        }
-        return false;
-    }
-
     public String argType(ArrayList<VarClass> array, String name){
         for (VarClass varClass: array){
             if (varClass.name.equals(name)){
@@ -145,68 +136,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             }
         }
         return null;
-    }
-    
-    public String valueType(String checkThis, ClassInfo classInfo){
-        if (checkThis.equals("this")) checkThis = className;
-        else if (classInfo.methods.containsKey(methodName) 
-                 && containsArg(classInfo.methods.get(methodName).args, checkThis)){
-            checkThis = argType(classInfo.methods.get(methodName).args, checkThis);
-        }
-        else if (classInfo.methods.containsKey(methodName) 
-                 && classInfo.methods.get(methodName).vars.containsKey(checkThis)){
-            checkThis = classInfo.methods.get(methodName).vars.get(checkThis).type;
-        
-        }    
-        else if (classInfo.methods.containsKey(checkThis)){
-            checkThis = classInfo.methods.get(checkThis).type;
-        }
-        else if(classInfo.fields.containsKey(checkThis)){
-            checkThis = classInfo.fields.get(checkThis).type;
-        }
-        else if(checkThis.equals(className)) return className;
-        else if(classDeclarations.containsKey(checkThis)) return checkThis;
-        else if(checkThis.matches("^[0-9]+$")){
-            checkThis = "int";
-        }
-        else if(checkThis.equals("true") || checkThis.equals("false")){
-            checkThis = "boolean";
-        }
-        else if(checkThis.equals("int")){
-            checkThis = "int";
-        }
-        else if(checkThis.equals("int[]")){
-            checkThis = "int[]";
-        }
-        else if(checkThis.equals("boolean")){
-            checkThis = "boolean";
-        }
-        else if(checkThis.equals("boolean[]")){
-            checkThis = "boolean[]";
-        }
-        else if(classInfo.parent != null){
-            
-            classInfo = classDeclarations.get(classInfo.parent);
-            checkThis = valueType(checkThis, classInfo);
-        } 
-        else throw new RuntimeException(checkThis + " not valid");
-        return checkThis;
-    }
-    
-    boolean isParent(String parent, String child){
-        ClassInfo childClassInfo = null;
-        if(parent.equals(child)) return false;
-        if(classDeclarations.containsKey(child))
-            childClassInfo = classDeclarations.get(child);
-        if (childClassInfo != null){
-            while(childClassInfo.parent != null){
-                if (childClassInfo.parent.equals(parent)){
-                    return true;
-                }
-                childClassInfo = classDeclarations.get(childClassInfo.parent);
-            }
-        }
-        return false;
     }
 
     /**
@@ -358,14 +287,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
             );
         }
-        // writer.write(
-        //     "\tret "
-        //     + llvmType(methodType)
-        //     + " "
-        //     + var
-        //     + "\n"
-        //     + "}\n"
-        // );
+        //TODO: FIX THIS
+        writer.write(
+            "\tret "
+            + llvmType(methodType)
+            + " "
+            + var
+            + "\n"
+            + "}\n"
+        );
         methodName = null;
         return null;
     }
@@ -442,9 +372,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     String identifier = n.f0.accept(this, null);
 
     String expr = n.f2.accept(this, null);
-    //check if expr is Class
-    String expr_type;
-    ClassInfo classInfo = classDeclarations.get(className);
     String var = null, llvm_type = null;
     if(expr.contains("/")){
         String[] newStrings = expr.split("/", 2);
@@ -656,16 +583,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(ArrayAllocationExpression n, String argu) throws Exception {
         String expr = n.f3.accept(this, null);
-        
+        String expr_type = null;
         String var = null;
         if(expr.contains("/")){
             String[] newStrings = expr.split("/", 2);
-            expr = newStrings[1];
+            expr_type = newStrings[1];
             var = newStrings[0];
 
         }
         else {
             var = expr;
+
+            //TODO: get type of epxr convert it to llvm and return
+            //expr_type =...;
         }
         // ClassInfo classInfo = classDeclarations.get(className);
         writer.write(
@@ -689,7 +619,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + "\n"
 
         );
-        return "int[]";
+        return "%_"+String.valueOf(newVar - 4)+"/"+expr;
     }
 
     @Override
@@ -993,9 +923,8 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(NotExpression n, String argu) throws Exception {
         ClassInfo classInfo = classDeclarations.get(className);
         String checkThis = n.f1.accept(this, null);
-        String type = valueType(checkThis, classInfo);
         
-        return type;
+        return null;
     }
 
 
