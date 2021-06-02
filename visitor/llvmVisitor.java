@@ -91,6 +91,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         );
     }
 
+    public Boolean containsArg(ArrayList<VarClass> array, String name){
+        for (VarClass varClass: array){
+            if (varClass.name.equals(name)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     String llvmType(String type){
         if (type.equals("int")){
             type = "i32";
@@ -267,25 +277,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 + newVar++
                 + " = load "
                 + llvm_type
-                + "* %_"
-                + (newVar - 2)
-                + "\n\tstore "
-                + llvm_type
-                + " %_"
-                + (newVar - 1)
                 + ", "
                 + llvm_type
                 + "* %_"
-                + (newVar - 2)
+                + (newVar - 2) 
                 + "\n"
-                + "\tret "
-                + llvmType(methodType)
-                + " %_"
-                + (newVar - 1)
-                + "\n"
-                + "}\n"
 
             );
+            llvm_type = llvmType(methodType);
+            var = "%_" + String.valueOf(newVar - 1);
         }
         //TODO: FIX THIS
         writer.write(
@@ -344,11 +344,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(VarDeclaration n, String argu) throws Exception {
+        String ident = null, type = null;
         if (methodName != null){
-
-            ClassInfo classInfo = classDeclarations.get(className);
-            String type = n.f0.accept(this, null);
-            String ident = n.f1.accept(this, null);
+            type = n.f0.accept(this, null);
+            ident = n.f1.accept(this, null);
             writer.write(
                 "\t%"
                 + ident
@@ -356,8 +355,12 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 + llvmType(type)
                 +"\n"
             );
+            return "%"+ident+"/"+llvmType(type) ;
         }
-        return null;
+        else {
+
+        }
+        return null; 
     }
 
 
@@ -372,26 +375,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     String identifier = n.f0.accept(this, null);
 
     String expr = n.f2.accept(this, null);
-    String var = null, llvm_type = null;
+    String var = null, llvm_type = null, expr_llvm_type = null;
     if(expr.contains("/")){
         String[] newStrings = expr.split("/", 2);
-        llvm_type = newStrings[1];
+        expr_llvm_type = newStrings[1];
         var = newStrings[0];
 
     }
-    if (classDeclarations.get(className).methods.get(methodName).vars.get(identifier) != null)
-        writer.write(
-            "\tstore "
-            + llvm_type
-            + " "
-            + var
-            + ", "
-            + llvmType(classDeclarations.get(className).methods.get(methodName).vars.get(identifier).type)
-            + "* %"
-            + identifier
-            + "\n"
-        );
-    else{
+    
+    if (classDeclarations.get(className).fields.containsKey(identifier)){
         llvm_type = llvmType(classDeclarations.get(className).fields.get(identifier).type);
         int offset = classDeclarations.get(className).fieldOffsets.get(identifier);
         writer.write(
@@ -405,23 +397,64 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + (newVar - 2)
             + " to "
             + llvm_type
-            + "*\n\t%_"
-            + newVar++
-            + " = load "
-            + llvm_type
-            + "* %_"
-            + (newVar - 2)
+            + "*"
             + "\n\tstore "
-            + llvm_type
-            + " %_"
-            + (newVar - 1)
+            + expr_llvm_type
+            + var
             + ", "
             + llvm_type
             + "* %_"
-            + (newVar - 2)
+            + (newVar - 1)
             + "\n"
-
-
+        );
+        return "%_"+ String.valueOf(newVar - 1)+"/"+llvm_type;
+    }
+    else if (classDeclarations.get(className).methods.get(methodName).vars.containsKey(identifier)){
+        writer.write(
+            "\t%_"
+            + newVar++
+            + " = load "
+            + llvmType(classDeclarations.get(className).methods.get(methodName).vars.get(identifier).type)
+            + ", "
+            + llvmType(classDeclarations.get(className).methods.get(methodName).vars.get(identifier).type)
+            + "* %"
+            + classDeclarations.get(className).methods.get(methodName).vars.get(identifier).name
+            + "\tstore "
+            + llvm_type
+            + " "
+            + var
+            + ", "
+            + llvmType(classDeclarations.get(className).methods.get(methodName).vars.get(identifier).type)
+            + "* %"
+            + identifier
+            + "\n"
+        );
+    }
+    else if (containsArg(classDeclarations.get(className).methods.get(methodName).args, identifier)){
+        int i = 0;
+        for (i = 0; i <  classDeclarations.get(className).methods.get(methodName).args.size(); i++){
+            if (classDeclarations.get(className).methods.get(methodName).args.get(i).equals(identifier)){
+                break;
+            }
+        }
+        writer.write(
+            "\t%_"
+            + newVar++
+            + " = load "
+            + llvmType(classDeclarations.get(className).methods.get(methodName).args.get(i).type)
+            + ", "
+            + llvmType(classDeclarations.get(className).methods.get(methodName).args.get(i).type)
+            + "* %"
+            + classDeclarations.get(className).methods.get(methodName).args.get(i).name
+            + "\tstore "
+            + llvm_type
+            + " "
+            + var
+            + ", "
+            + llvmType(classDeclarations.get(className).methods.get(methodName).args.get(i).type)
+            + "* %"
+            + identifier
+            + "\n"
         );
     }
     return "%_"+ String.valueOf(newVar - 1)+"/"+llvm_type;
