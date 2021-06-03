@@ -344,17 +344,22 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             llvm_type = llvmType(methodType);
             var = "%_" + String.valueOf(newVar - 1);
         }
-        //TODO: FIX THIS
+        if(!var.startsWith("%_")){
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load "
+                + llvmType(methodType)
+                + ", "
+                + llvmType(methodType)
+                + "* "
+                + var
+                + "\n"
+                );
+        }
         writer.write(
-            "\t%_"
-            + newVar++
-            + " = load "
-            + llvmType(methodType)
-            + ", "
-            + llvmType(methodType)
-            + "* "
-            + var
-            +"\n\tret "
+            
+            "\tret "
             + llvmType(methodType)
             + " %_"
             + (newVar - 1)
@@ -548,9 +553,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             prim_expr = className;
             var = "%this";
         }
+        String oldVar = var;
         String identifier = n.f2.accept(this, null);
         int offset = classDeclarations.get(prim_expr).methodOffsets.get(identifier)/8;
         argList = new ArrayList<String>();
+        String bitcast = null;
         n.f4.accept(this, "flagList");
         String llvmType = llvmType(classDeclarations.get(prim_expr).methods.get(identifier).type);
         writer.write(
@@ -581,6 +588,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + llvmType
             + " (i8*"
         );
+        bitcast = "%_" + String.valueOf(newVar - 1);
         String llvm_type = null;
         for (int i = 0; i < classDeclarations.get(prim_expr).methods.get(identifier).args.size(); i++){
             llvm_type = llvmType(classDeclarations.get(prim_expr).methods.get(identifier).args.get(i).type);
@@ -589,21 +597,51 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 + llvm_type
             );
         }
-        writer.write(
-            ")*\n\t%_"
-            + newVar++
-            + " = call "
-            + llvmType
-            + "%_"
-            + (newVar - 2)
-            + " (i8* "
-            + var
-        );
+        writer.write(")*\n");
         for (int i = 0; i < classDeclarations.get(prim_expr).methods.get(identifier).args.size(); i++){
             if(argList.get(i).contains("/")){
                 String[] newStrings = argList.get(i).split("/", 2);
                 llvm_type = newStrings[1];
                 var = newStrings[0];   
+            }
+            else {
+                var = "%" + argList.get(i);
+                String var_p = var;
+                writer.write(
+                    "\t%_"
+                    + newVar++
+                    + " = load "
+                    + llvmType(classDeclarations.get(prim_expr).methods.get(identifier).args.get(i).type)
+                    +", "
+                    + llvmType(classDeclarations.get(prim_expr).methods.get(identifier).args.get(i).type)
+                    + "* "
+                    + var_p 
+                    + "\n"
+                );
+            }
+        }
+        var = oldVar;
+        if (!var.contains("_")) var = "%this";
+        writer.write(
+            "\t%_"
+            + newVar++
+            + " = call "
+            + llvmType
+            +" "
+            + bitcast
+            + " (i8* "
+            + var
+        );
+        for (int j = 0; j < classDeclarations.get(prim_expr).methods.get(identifier).args.size(); j++){
+            if(argList.get(j).contains("/")){
+                String[] newStrings = argList.get(j).split("/", 2);
+                llvm_type = newStrings[1];
+                var = newStrings[0];   
+            }
+            else {
+                var = "%" + argList.get(j);
+                String var_p = var;
+                var = "%_" + String.valueOf(newVar - (classDeclarations.get(prim_expr).methods.get(identifier).args.size() - j + 1));
             }
             writer.write(
                 ", "
@@ -1082,7 +1120,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var = "%_" + printExpr;
+            var = "%" + printExpr;
+            String var_p = var;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_p 
+                + "\n"
+            );
+            var = "%_" + String.valueOf(newVar - 1);
         }
         writer.write(
             "\tcall void (i32) @print_int(i32 "
