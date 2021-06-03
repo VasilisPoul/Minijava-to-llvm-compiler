@@ -15,6 +15,8 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public FileWriter writer;
     public int newVar;
     public int newIf;
+    public int newLoop;
+    public int newOob;
     public llvmVisitor(LinkedHashMap<String, ClassInfo> classDeclarations, String file) throws IOException{
         this.classDeclarations = classDeclarations;
         this.writer = new FileWriter(file);
@@ -958,48 +960,116 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String value = n.f0.accept(this, null);
         String index = n.f2.accept(this, null);
         String llvm_type_value = null, var_value = null;
+        int offset = classDeclarations.get(className).fieldOffsets.get(value) + 8;
         if(value.contains("/")){
             String[] newStrings = value.split("/", 2);
             llvm_type_value = newStrings[1];
             var_value = newStrings[0];
         }
+        else {
+            var_value = "%" + value;
+            String var_value_p = var_value;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load "
+                + llvm_type_value
+                +", "
+                + llvm_type_value
+                +"* "
+                + var_value_p 
+                + "\n"
+            );
+            
+            var_value = "%_" + String.valueOf(newVar - 1);
+        }
+
         String llvm_type_index = null, var_index = null;
         if(index.contains("/")){
             String[] newStrings = index.split("/", 2);
             llvm_type_index = newStrings[1];
             var_index = newStrings[0];
         }
-
-        // writer.write(
-        //     "\t%_"
-        //     + newVar++
-        //     + " = getelementptr 132, 132* "
-        //     + var_value
-        //     + ", i32 0\n\t%_"
-        //     + newVar++
-        //     + " = load i32, i32* "
-        //     + (newVar - 2)
-        //     + "\n\t%_"
-        //     + newVar++
-        //     + " = icmp slt i32 "
-        //     + var_index
-        //     + ", 0\n\tbr i1 "
-        //     + (newVar - 2)
-        //     + ", label %oob"
-        //     + newOob++
-        //     + ", label %oob"
-        //     + newOob++
-        //     + "\noob"
-        //     + (newOob - 2)
-        //     + ":\n"
-        //     + "\t\tcall void @throwoob()\n"
-        //     + "\t\tbr label %oob"
-        //     + (newOob - 1)
-        //     + "\noob"
-        //     + (newOob - 1)
-        //     +
-        // );
-
+        else {
+            var_index = "%" + value;
+            String var_index_p = var_index;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_index_p 
+                + "\n"
+            );
+            var_index = "%_" + String.valueOf(newVar - 1);
+        }
+        int oob1 = newOob++, oob2 = newOob++;
+        int getElVar = newVar++, bitVar = newVar++;
+        int loadVar = newVar++, icmpVar = newVar++;
+        writer.write(   
+            "\t%_"
+            + getElVar
+            + " = getelementptr i8, i8* %this, "
+            + llvm_type_value 
+            + " "
+            + offset
+            + "\n\t%_"
+            + bitVar
+            + " = bitcast i8* %_"
+            + getElVar
+            + " to i32**\n"
+            + "\t%_"
+            + loadVar
+            + " = load i32, i32* "
+            + bitVar
+            + "\n\t%_"
+            + icmpVar
+            + " = icmp ult i32 "
+            + var_index
+            + ", %_"
+            + loadVar
+            + "\n\t br i1 %_"
+            + icmpVar
+            + ", label %oob"
+            + oob1
+            + ", label %oob"
+            + oob2
+            + "\n"
+        );
+        int addVar = newVar++;
+        int newGetElVar = newVar++;
+        int newLoadVar = newVar++; 
+        int oob3 = newOob++;
+        writer.write(
+            "\noob"
+            + oob1
+            + ":\n"
+            + "\t%_"
+            + addVar
+            + " = add i32 %_"
+            + var_index
+            + ", 1\n"
+            + "\t%_"
+            + newGetElVar
+            + " = getelementptr i32, i32* %_"
+            + loadVar
+            + ", i32 %_"
+            + addVar
+            + "\n"
+            + "\t%_"
+            + newLoadVar
+            + " = load i32, i32* %_"
+            + newGetElVar
+            + "\n br label %oob"
+            + oob3
+            + "\n\noob"
+            + oob2
+            + ":\n"
+            + "\tcall void @throw_oob()\n"
+            + "\tbr label %oob"
+            + oob3
+            + "\n"
+        );
+        
         return "int";
     }
 
@@ -1288,9 +1358,47 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     * f4 -> Statement()
     */
     public String visit(WhileStatement n, String argu) throws Exception {
-        String ifExpr = n.f2.accept(this, null);
-        ClassInfo classInfo = classDeclarations.get(className);
-        
+        writer.write(
+            "\tbr label %loop"
+            + newLoop++
+            + "\nloop"
+            + (newLoop - 1)
+            + ":\n"
+        );
+        String expr = n.f2.accept(this, null);
+        String llvm_type_expr = null, var_expr = null;
+        if(expr.contains("/")){
+            String[] newStrings = expr.split("/", 2);
+            llvm_type_expr = newStrings[1];
+            var_expr = newStrings[0];
+    
+        }
+        else {
+            var_expr = "%" + expr;
+            String var_expr_p = var_expr;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_expr_p 
+                + "\n"
+            );
+            var_expr = "%_" + String.valueOf(newVar - 1);
+        }
+        // ClassInfo classInfo = classDeclarations.get(className);
+        int loop1 = newLoop++;
+        int loop2 = newLoop++;
+        writer.write(
+            "\tbr i1 "
+            + var_expr
+            + ", label %loop"
+            + loop1
+            + ", label %loop"
+            + loop2
+            + "\nloop"
+            + loop1 
+            + ":\n"
+        );
         n.f4.accept(this, argu);
         return null;
     }
