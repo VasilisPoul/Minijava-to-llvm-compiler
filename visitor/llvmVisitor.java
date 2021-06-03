@@ -337,14 +337,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 + (newVar - 2)
                 + " to "
                 + llvm_type
-                + "*\n\t%_"
-                + newVar++
-                + " = load "
-                + llvm_type
-                + ", "
-                + llvm_type
-                + "* %_"
-                + (newVar - 2) 
+                + "*"
                 + "\n"
 
             );
@@ -551,6 +544,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             var = newStrings[0];
 
         }
+        else if (prim_expr.equals("this")){
+            prim_expr = className;
+            var = "%this";
+        }
         String identifier = n.f2.accept(this, null);
         int offset = classDeclarations.get(prim_expr).methodOffsets.get(identifier)/8;
         argList = new ArrayList<String>();
@@ -754,7 +751,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var_left = "%_" + left;
+            var_left = "%" + left;
+            String var_left_p = var_left;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_left_p 
+                + "\n"
+            );
+            var_left = "%_" + String.valueOf(newVar - 1);
         }
         String llvm_type_right = null, var_right = null;
         if(right.contains("/")){
@@ -764,7 +770,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var_right = "%_" + right;
+            var_right = "%" + right;
+            String var_right_p = var_right;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_right_p 
+                + "\n"
+            );
+            var_right = "%_" + String.valueOf(newVar - 1);
         }
         writer.write(
             "\t%_"
@@ -793,7 +808,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var_left = "%_" + left;
+            var_left = "%" + left;
+            String var_left_p = var_left;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_left_p 
+                + "\n"
+            );
+            var_left = "%_" + String.valueOf(newVar - 1);
         }
         String llvm_type_right = null, var_right = null;
         if(right.contains("/")){
@@ -803,7 +827,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var_right = "%_" + right;
+            var_right = "%" + right;
+            String var_right_p = var_right;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_right_p 
+                + "\n"
+            );
+            var_right = "%_" + String.valueOf(newVar - 1);
         }
         writer.write(
             "\t%_"
@@ -832,7 +865,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var_left = "%_" + left;
+            var_left = "%" + left;
+            String var_left_p = var_left;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_left_p 
+                + "\n"
+            );
+            var_left = "%_" + String.valueOf(newVar - 1);
         }
         String llvm_type_right = null, var_right = null;
         if(right.contains("/")){
@@ -842,7 +884,16 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     
         }
         else {
-            var_right = "%_" + right;
+            var_right = "%" + right;
+            String var_right_p = var_right;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_right_p 
+                + "\n"
+            );
+            var_right = "%_" + String.valueOf(newVar - 1);
         }
         writer.write(
             "\t%_"
@@ -950,25 +1001,25 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(IntegerLiteral n, String argu) throws Exception {
         String integ =  n.f0.toString();
-        writer.write(
-            "\t%_"
-            + newVar++
-            +" = alloca i32\n"
-            + "\tstore i32 "
-            + integ
-            + ", i32* %_"
-            + (newVar - 1)
-            + "\n"
-        );
         // writer.write(
         //     "\t%_"
-        //     + newVar
-        //     + " = add i32 0, "
+        //     + newVar++
+        //     +" = alloca i32\n"
+        //     + "\tstore i32 "
         //     + integ
+        //     + ", i32* %_"
+        //     + (newVar - 1)
         //     + "\n"
         // );
-        String ret = "%_" + (newVar - 1) + "/i32";
-        // newVar++;
+        writer.write(
+            "\t%_"
+            + newVar
+            + " = add i32 0, "
+            + integ
+            + "\n"
+        );
+        String ret = "%_" + (newVar) + "/i32";
+        newVar++;
         return ret;
     }
     @Override
@@ -1071,6 +1122,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         }
         else {
             var_left = "%" + left;
+            String var_left_p = var_left;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_left_p 
+                + "\n"
+            );
+            var_left = "%_" + String.valueOf(newVar - 1);
         }
         String llvm_type_right = null, var_right = null;
         if(right.contains("/")){
@@ -1081,6 +1141,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         }
         else {
             var_right = "%" + right;
+            String var_right_p = var_right;
+            writer.write(
+                "\t%_"
+                + newVar++
+                + " = load i32, i32* "
+                + var_right_p 
+                + "\n"
+            );
+            var_right = "%_" + String.valueOf(newVar - 1);
         }
         writer.write(
             "\t%_"
@@ -1091,7 +1160,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + var_right
             + "\n"
         );
-        return "boolean";
+        return "%_" + String.valueOf(newVar - 1)+"/i1";
     }
 
     /**
@@ -1124,7 +1193,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             var_expr = newStrings[0];
         }
         writer.write(
-            "\tbr i1 %_"
+            "\tbr i1 "
             + var_expr
             + ", label %if"
             + newIf++
@@ -1135,7 +1204,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         );
         writer.write(
             "\nif"
-            + (newIf - 1)
+            + (newIf - 2)
             + ":\n" 
         );
         n.f4.accept(this, null);
@@ -1146,19 +1215,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         );
         writer.write(
             "\nif"
-            + (newIf - 1)
+            + (newIf - 2)
             + ":\n" 
         );
         n.f6.accept(this, null);
         writer.write(
             "\tbr label %if"
-            + newIf
+            + (newIf - 1)
             + "\n"
         );
 
         writer.write(
             "\nif"
-            + newIf
+            + (newIf - 1)
             + ":\n"
         );
         return null;
