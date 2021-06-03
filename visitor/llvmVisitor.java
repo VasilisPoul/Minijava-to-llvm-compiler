@@ -1067,7 +1067,9 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + "\tcall void @throw_oob()\n"
             + "\tbr label %oob"
             + oob3
-            + "\n"
+            + "\n\noob"
+            + oob3
+            + ":\n"
         );
         
         return "int";
@@ -1400,6 +1402,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + ":\n"
         );
         n.f4.accept(this, argu);
+        writer.write(
+            "loop"
+            + loop2
+            + ":\n"
+        );
         return null;
     }
 
