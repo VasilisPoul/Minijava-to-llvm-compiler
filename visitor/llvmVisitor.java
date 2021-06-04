@@ -465,11 +465,18 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     String ident_var = toSplit_var, ident_type = toSplit_llvm_type;
     String expr = n.f2.accept(this, null);
     splitRetVal(expr);
-    String expr_var = toSplit_var;
-
-    writer.write(
-        "\tstore "+ident_type+" "+expr_var+", "+ident_type+"* %"+identifier+"\n"
-    );
+    String expr_var = toSplit_var, expr_type = toSplit_llvm_type;
+    //TODO: replace exprvar with identifier
+    if (ident_type.equals("i32*")){
+        writer.write(
+            "\tstore "+ident_type+" "+expr_var+", "+ident_type+"* "+ident_var+"\n"
+        );
+    }
+    else{
+        writer.write(
+            "\tstore "+expr_type+" "+expr_var+", "+ident_type+"* %"+identifier+"\n"
+        );
+    }
     
     return ident_var+"/"+ident_type;
  }
@@ -535,7 +542,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             writer.write(", "+llvm_type+" "+prim_expr_var);
         }
         writer.write(")\n");
-        return "%_" + String.valueOf(newVar6)+"/"+llvmType(prim_expr_type);
+        return "%_" + String.valueOf(newVar6)+"/"+llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).type);
     }
 
 
@@ -608,7 +615,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             +"\t%_"+newVar+++" = call i8* @calloc(i32 4, i32 %_"+(newVar-2)+")\n"
             +"\t%_"+newVar+++" = bitcast i8* %_"+(newVar-2)+" to i32*\n"
         );
-        return "%_"+String.valueOf(newVar - 4)+"/"+expr_type;
+        return expr_var+"/"+expr_type;
     }
 
     @Override
@@ -719,7 +726,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     }
 
 
-       /**
+    /**
     * f0 -> Identifier()
     * f1 -> "["
     * f2 -> Expression()
@@ -730,7 +737,43 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     */
     @Override
     public String visit(ArrayAssignmentStatement n, String argu) throws Exception {
-        n.f0.accept(this, null);
+        String value = n.f0.accept(this, null);
+        splitRetVal(value);
+        String value_var = toSplit_var;
+        String index = n.f2.accept(this, null);
+        splitRetVal(index);
+        String index_var = toSplit_var;
+        int oob1 = newOob++, oob2 = newOob++;
+        int icmpVar = newVar++, loadVar = newVar++;
+        writer.write(   
+            "\t%_"+loadVar+" = load i32, i32* "+value_var+"\n"   
+            + "\t%_"+icmpVar+" = icmp ult i32 "+index_var+", %_"+loadVar+"\n"
+            + "\t br i1 %_"+icmpVar+", label %oob"+oob1+", label %oob"+oob2+"\n"
+        );
+        int addVar = newVar++;
+        int newGetElVar = newVar++;
+        int newLoadVar = newVar++; 
+        int oob3 = newOob++;
+        writer.write(
+            "\noob"+oob1+":\n"
+            + "\t%_"+addVar+" = add i32 "+index_var+", 1\n"
+            + "\t%_"+newGetElVar+" = getelementptr i32, i32* "+value_var
+            + ", i32 %_"+addVar+"\n"
+        );
+
+        String expr = n.f5.accept(this, null);
+        splitRetVal(expr);
+        String expr_val = toSplit_var, expr_type = toSplit_llvm_type;
+        writer.write(
+            "\tstore i32 "+expr_val+", i32* %_"+newGetElVar+"\n"
+        );
+        writer.write(
+            "\tbr label %oob"+oob3
+            + "\n\noob"+oob2+":\n"
+            + "\tcall void @throw_oob()\n"
+            + "\tbr label %oob"+oob3+"\n"
+            + "\n\noob"+oob3+":\n"
+        );
         
         return null;
     }
