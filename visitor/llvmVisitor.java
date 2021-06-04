@@ -15,6 +15,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public int newIf;
     public int newLoop;
     public int newOob;
+    public int newAlloc;
     public String toSplit_var;
     public String toSplit_llvm_type;
     public llvmVisitor(LinkedHashMap<String, ClassInfo> classDeclarations, String file) throws IOException{
@@ -118,7 +119,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
         }
         else if (toSplit.equals("this")){
-            ClassInfo classInfo = classDeclarations.get(className);
             toSplit_var = "%this";
             toSplit_llvm_type = className;
             return null;
@@ -128,7 +128,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             String toSplit_var_p = toSplit_var;
             ClassInfo classInfo = classDeclarations.get(className);
             int offset = 0;
-            ClassInfo classInfocheck = null;
             do {
                 if (classInfo.fieldOffsets.containsKey(toSplit)){
                     toSplit_llvm_type = llvmType(classInfo.fields.get(toSplit).type);
@@ -466,7 +465,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     String ident_var = toSplit_var, ident_type = toSplit_llvm_type;
     String expr = n.f2.accept(this, null);
     splitRetVal(expr);
-    String expr_var = toSplit_var, expr_type = toSplit_llvm_type;
+    String expr_var = toSplit_var;
 
     writer.write(
         "\tstore "+ident_type+" "+expr_var+", "+ident_type+"* %"+identifier+"\n"
@@ -490,7 +489,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String prim_expr_var = toSplit_var, prim_expr_type = toSplit_llvm_type;  
         String identifier = n.f2.accept(this, null);
         // splitRetVal(identifier);
-        String ident_type = toSplit_llvm_type;
+        // String ident_type = toSplit_llvm_type;
         
         int offset = classDeclarations.get(prim_expr_type).methodOffsets.get(identifier)/8;
         int newVar1 = newVar++, newVar2 = newVar++, newVar3 = newVar++, newVar4 = newVar++,newVar5 = newVar++;
@@ -531,7 +530,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             }
             else {
                 prim_expr_var = "%" + argList.get(j);
-                String var_p = prim_expr_var;
                 prim_expr_var = "%_" + String.valueOf(newVar - (classDeclarations.get(prim_expr_type).methods.get(identifier).args.size() - j + 1));
             }
             writer.write(", "+llvm_type+" "+prim_expr_var);
@@ -592,8 +590,21 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String expr = n.f3.accept(this, null);
         splitRetVal(expr);
         String expr_var = toSplit_var, expr_type = toSplit_llvm_type;
+        int newVar1 = newVar++;
+        int newAlloc1 = newAlloc++, newAlloc2 = newAlloc++;
         writer.write(
-            "\t%_"+newVar+++" = add i32 %."+expr+", 1\n"
+            "\t%_"+newVar1+" = icmp slt i32 "+expr_var+", 0\n"
+            + "\tbr i1 %_"+newVar1+", label %arr_alloc"+newAlloc1
+            + ", label %arr_alloc"+newAlloc2+"\n"
+        );
+        writer.write(
+            "arr_alloc"+newAlloc1+":\n"
+            + "\tcall void @throw_oob()\n"
+            + "\tbr label %arr_alloc"+newAlloc2+"\n"
+        );
+        writer.write(
+            "arr_alloc"+newAlloc2+":\n"
+            +"\t%_"+newVar+++" = add i32 "+expr_var+", 1\n"
             +"\t%_"+newVar+++" = call i8* @calloc(i32 4, i32 %_"+(newVar-2)+")\n"
             +"\t%_"+newVar+++" = bitcast i8* %_"+(newVar-2)+" to i32*\n"
         );
@@ -677,10 +688,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(ArrayLookup n, String argu) throws Exception{
         String value = n.f0.accept(this, null);
         splitRetVal(value);
-        String value_var = toSplit_var, value_type = toSplit_llvm_type;
+        String value_var = toSplit_var;
         String index = n.f2.accept(this, null);
         splitRetVal(index);
-        String index_var = toSplit_var, index_type = toSplit_llvm_type;
+        String index_var = toSplit_var;
         int oob1 = newOob++, oob2 = newOob++;
         int icmpVar = newVar++, loadVar = newVar++;
         writer.write(   
@@ -812,7 +823,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String left = null, right = null;
         left = n.f0.accept(this, null);
         right = n.f2.accept(this, null);
-        ClassInfo classInfo = classDeclarations.get(className);
         
         return "boolean";
     }
@@ -857,7 +867,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(IfStatement n, String argu) throws Exception {
         String expr = n.f2.accept(this, null);
         splitRetVal(expr);
-        String llvm_type_expr = toSplit_llvm_type, var_expr = toSplit_var;
+        String var_expr = toSplit_var;
         int newIf0 = newIf++, newIf1 = newIf++, newIf2 = newIf++;
         writer.write(
             "\tbr i1 "+var_expr+", label %if"+newIf0
