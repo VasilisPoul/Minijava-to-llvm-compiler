@@ -465,7 +465,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     String expr_var = toSplit_var, expr_type = toSplit_llvm_type;
 
     writer.write(
-        "\tstore "+expr_type+" "+expr_var+", "+ident_type+"* %"+identifier+"\n"
+        "\tstore "+ident_type+" "+expr_var+", "+ident_type+"* %"+identifier+"\n"
     );
     
     return ident_var+"/"+ident_type;
