@@ -643,7 +643,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
     @Override
     public String visit(IntegerType n, String argu) {
-        
         return "int";
     }
 
@@ -877,10 +876,31 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     @Override
     public String visit(AndExpression n, String argu) throws Exception {  
         String left = null, right = null;
+        int newVar1 = newVar++;
+        int newIf1 = newIf++, newIf2 = newIf++, newIf3 = newIf++;
+        writer.write(
+            "\tbr label %if"+newIf1+"\n"
+            +"if"+newIf1+":\n"
+        );
         left = n.f0.accept(this, null);
+        splitRetVal(left, "expression");
+        String left_var = toSplit_var;
+        writer.write(
+            "\tbr i1 "+left_var+", label %if"+newIf2+", label %if"+newIf3+"\n"
+            + "if"+newIf2+":\n"
+        );
+
         right = n.f2.accept(this, null);
+        splitRetVal(right, "expression");
+        String right_var = toSplit_var;
+        writer.write(
+            "\tbr label %if"+newIf3+"\n"
+            + "if"+newIf3+":\n"
+            + "\t"+newVar1+" = phi i1 ["+left_var+", %if"+newIf1+"],"
+            + " ["+right_var+", %if"+newIf2+"]\n"
+        );
         
-        return "boolean";
+        return "%_"+newVar1+"/i1";
     }
 
     @Override
