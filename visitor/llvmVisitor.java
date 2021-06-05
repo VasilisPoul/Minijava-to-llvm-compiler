@@ -531,28 +531,41 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             writer.write(", "+llvm_type);
         }
         writer.write(")*\n");
+        if (!prim_expr_var.contains("_")) prim_expr_var = "%this";
+        String first_arg = prim_expr_var;
         for (int i = 0; i < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); i++){
             splitRetVal(argList.get(i), "arg");
 
         }
-        if (!prim_expr_var.contains("_")) prim_expr_var = "%this";
-        int newVar6 = newVar++;
-        writer.write(
-            "\t%_"+newVar6+" = call "
-            +llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).type)+" "
-            + bitcast+" (i8* "+prim_expr_var
-        );
+        
+
+        ArrayList<String> arg_array = new ArrayList<>();
+
         for (int j = 0; j < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); j++){
             if(argList.get(j).contains("/")){
                 String[] newStrings = argList.get(j).split("/", 2);
                 llvm_type = newStrings[1];
-                prim_expr_var = newStrings[0];   
+                prim_expr_var = newStrings[0];  
+                arg_array.add(llvmType(llvm_type)+" "+prim_expr_var); 
             }
             else {
-                prim_expr_var = "%" + argList.get(j);
-                prim_expr_var = "%_" + String.valueOf(newVar - (classDeclarations.get(prim_expr_type).methods.get(identifier).args.size() - j + 1));
+                // prim_expr_var = "%" + argList.get(j);
+                // prim_expr_var = "%_" + String.valueOf(newVar - (classDeclarations.get(prim_expr_type).methods.get(identifier).args.size() - j + 1));
+                splitRetVal(argList.get(j), "expression");
+                arg_array.add(llvmType(toSplit_llvm_type)+" "+toSplit_var);
             }
-            writer.write(", "+llvm_type+" "+prim_expr_var);
+            
+        }
+
+
+        int newVar6 = newVar++;
+        writer.write(
+            "\t%_"+newVar6+" = call "
+            +llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).type)+" "
+            + bitcast+" (i8* "+first_arg
+        );
+        for (int j = 0; j < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); j++){
+            writer.write(", "+arg_array.get(j));
         }
         writer.write(")\n");
         argList = prevArgList;
@@ -898,7 +911,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         writer.write(
             "\tbr label %if"+newIf3+"\n"
             + "if"+newIf3+":\n"
-            + "\t"+newVar1+" = phi i1 ["+left_var+", %if"+newIf1+"],"
+            + "\t%_"+newVar1+" = phi i1 ["+left_var+", %if"+newIf1+"],"
             + " ["+right_var+", %if"+newIf2+"]\n"
         );
         
@@ -1041,6 +1054,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         return null;
+    }
+
+    public String visit(PrimaryExpression n, String argu) throws Exception {
+        return n.f0.accept(this, argu);
     }
 
 }
