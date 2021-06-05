@@ -130,7 +130,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             int offset = 0;
             do {
                 if (classInfo.fieldOffsets.containsKey(toSplit)){
-                    toSplit_llvm_type = llvmType(classInfo.fields.get(toSplit).type);
+                    toSplit_llvm_type = classInfo.fields.get(toSplit).type;
                     offset += classDeclarations.get(className).fieldOffsets.get(toSplit);
                     offset += 8;
                     break;
@@ -145,20 +145,17 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 int newVar1 = newVar++, newVar2 = newVar++;
                 writer.write(
                     "\t%_"+newVar1+" = getelementptr i8, i8* %this, i32 "+offset+"\n"
-                    +"\t%_"+newVar2+" = bitcast i8* %_"+newVar1+" to "+toSplit_llvm_type+"*\n"
+                    +"\t%_"+newVar2+" = bitcast i8* %_"+newVar1+" to "+llvmType(toSplit_llvm_type)+"*\n"
                 );
                 
                 toSplit_var = "%_"+String.valueOf(newVar2);
                 if (!inType.equals("identifier")){
                     int  newVar3 = newVar++;
                     writer.write(
-                        "\t%_"+newVar3+" = load "+ toSplit_llvm_type+
-                        ", "+toSplit_llvm_type+"* %_"+newVar2+"\n"
+                        "\t%_"+newVar3+" = load "+ llvmType(toSplit_llvm_type)+
+                        ", "+llvmType(toSplit_llvm_type)+"* %_"+newVar2+"\n"
                     );
                     toSplit_var = "%_"+String.valueOf(newVar3);
-                }
-                else {
-                    toSplit_llvm_type = toSplit_llvm_type /*+ "*"*/;
                 }
                 
                 return true; 
@@ -171,10 +168,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 MethodClass currentMethod = classInfo.methods.get(methodName);
                 int newVar1 = newVar++;
                 if (currentMethod.vars.containsKey(toSplit)){
-                    toSplit_llvm_type = llvmType(currentMethod.vars.get(toSplit).type);
+                    toSplit_llvm_type = currentMethod.vars.get(toSplit).type;
                     writer.write(
-                        "\t%_"+newVar1+" = load "+toSplit_llvm_type+", "
-                        + toSplit_llvm_type+"* "+toSplit_var_p+"\n"
+                        "\t%_"+newVar1+" = load "+llvmType(toSplit_llvm_type)+", "
+                        + llvmType(toSplit_llvm_type)+"* "+toSplit_var_p+"\n"
                     );
                     toSplit_var = "%_"+String.valueOf(newVar1); 
                 }
@@ -183,10 +180,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                     ArrayList<VarClass> args = currentMethod.args;
                     for (int i = 0; i < args.size(); i++){
                         if (args.get(i).name.equals(toSplit)){
-                            toSplit_llvm_type = llvmType(args.get(i).type);
+                            toSplit_llvm_type = args.get(i).type;
                             writer.write(
-                                "\t%_"+newVar1+" = load "+toSplit_llvm_type+", "
-                                + toSplit_llvm_type+"* "+toSplit_var_p+"\n"
+                                "\t%_"+newVar1+" = load "+llvmType(toSplit_llvm_type)+", "
+                                + llvmType(toSplit_llvm_type)+"* "+toSplit_var_p+"\n"
                             );
                             toSplit_var = "%_"+String.valueOf(newVar1); 
                         }
@@ -403,7 +400,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         // n.f9.accept(this, argu);
         String ret = n.f10.accept(this, argu);
         splitRetVal(ret,"expression");
-        writer.write("\tret "+toSplit_llvm_type+" "+toSplit_var+ "\n}\n");
+        writer.write("\tret "+llvmType(toSplit_llvm_type)+" "+toSplit_var+ "\n}\n");
         methodName = null;
         return null;
     }
@@ -459,7 +456,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             writer.write(
                 "\t%"+ident+" = alloca "+llvmType(type)+"\n"
             );
-            return "%"+ident+"/"+llvmType(type) ;
+            return "%"+ident+"/"+type ;
         }
         return null; 
     }
@@ -480,13 +477,13 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     String expr_var = toSplit_var, expr_type = toSplit_llvm_type; 
     if (splitBool){
         writer.write(
-            "\tstore "+expr_type+" "+expr_var+", "+ident_type+"* "+ident_var+"\n"
+            "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* "+ident_var+"\n"
         );
-        return "%_"+ident_var+"/"+ident_type+"*";
+        return "%_"+ident_var+"/"+llvmType(ident_type)+"*";
     }
     else{
         writer.write(
-            "\tstore "+expr_type+" "+expr_var+", "+ident_type+"* %"+identifier+"\n"
+            "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* %"+identifier+"\n"
         );
     }
     
@@ -554,7 +551,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             writer.write(", "+llvm_type+" "+prim_expr_var);
         }
         writer.write(")\n");
-        return "%_" + String.valueOf(newVar6)+"/"+llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).type);
+        return "%_" + String.valueOf(newVar6)+"/"+classDeclarations.get(prim_expr_type).methods.get(identifier).type;
     }
 
 
@@ -775,7 +772,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
         String expr = n.f5.accept(this, null);
         splitRetVal(expr, "expression");
-        String expr_val = toSplit_var, expr_type = toSplit_llvm_type;
+        String expr_val = toSplit_var;
         writer.write(
             "\tstore i32 "+expr_val+", i32* %_"+newGetElVar+"\n"
         );
