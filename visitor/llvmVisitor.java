@@ -162,9 +162,12 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             }
             else {
                 //its a method var 
-                if(classDeclarations.containsKey(toSplit_llvm_type)){
-                    classInfo = classDeclarations.get(toSplit_llvm_type);
-                }
+                // if(classDeclarations.containsKey(toSplit_llvm_type)){
+                //     classInfo = classDeclarations.get(toSplit_llvm_type);
+                // }
+                classInfo = classDeclarations.get(className);
+                //
+                //
                 MethodClass currentMethod = classInfo.methods.get(methodName);
                 int newVar1 = newVar++;
                 if (currentMethod.vars.containsKey(toSplit)){
@@ -509,6 +512,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         
         int offset = classDeclarations.get(prim_expr_type).methodOffsets.get(identifier)/8;
         int newVar1 = newVar++, newVar2 = newVar++, newVar3 = newVar++, newVar4 = newVar++,newVar5 = newVar++;
+        ArrayList<String> prevArgList = argList;
         argList = new ArrayList<String>();
         n.f4.accept(this, "flagList");
         writer.write(
@@ -551,6 +555,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             writer.write(", "+llvm_type+" "+prim_expr_var);
         }
         writer.write(")\n");
+        argList = prevArgList;
         return "%_" + String.valueOf(newVar6)+"/"+classDeclarations.get(prim_expr_type).methods.get(identifier).type;
     }
 
@@ -1032,11 +1037,10 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     * f0 -> ","
     * f1 -> Expression()
     */
-   public String visit(ExpressionTerm n, String argu) throws Exception {
-    n.f0.accept(this, argu);
-    n.f1.accept(this, argu);
-    return null;
- }
-
+    public String visit(ExpressionTerm n, String argu) throws Exception {
+        n.f0.accept(this, argu);
+        n.f1.accept(this, argu);
+        return null;
+    }
 
 }
