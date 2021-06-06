@@ -807,12 +807,14 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
     @Override
     public String visit(ArrayLength n, String argu) throws Exception{ 
-        String value = n.f0.accept(this, null);
+        String expr = n.f0.accept(this, null);
+        splitRetVal(expr, "expression");
+        String expr_val = toSplit_var;
         writer.write(
-            "\t%_"+newVar+++" = getelementptr i32, i32* %_"+value+", i32 0\n"
-            +"\t%_"+newVar+++" = i32, i32* %_"+(newVar-2)+"\n"
+            "\t%_"+newVar+++" = getelementptr i32, i32* "+expr_val+", i32 0\n"
+            +"\t%_"+newVar+++" = load i32, i32* %_"+(newVar-2)+"\n"
         );
-        return null;
+        return "%_"+(newVar-1)+"/i32";
     }
 
     @Override
