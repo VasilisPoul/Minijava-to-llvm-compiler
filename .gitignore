@@ -5,3 +5,4 @@ visitor/*.class
 test-files/
 llvm-examples/
 out.ll
+minijava-testsuite-master
