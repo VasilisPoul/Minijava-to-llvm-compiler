@@ -631,12 +631,12 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + ", label %arr_alloc"+newAlloc2+"\n"
         );
         writer.write(
-            "arr_alloc"+newAlloc1+":\n"
+            "\narr_alloc"+newAlloc1+":\n"
             + "\tcall void @throw_oob()\n"
             + "\tbr label %arr_alloc"+newAlloc2+"\n"
         );
         writer.write(
-            "arr_alloc"+newAlloc2+":\n"
+            "\narr_alloc"+newAlloc2+":\n"
             +"\t%_"+newVar+++" = add i32 "+expr_var+", 1\n"
             +"\t%_"+newVar+++" = call i8* @calloc(i32 4, i32 %_"+(newVar-2)+")\n"
             +"\t%_"+newVar+++" = bitcast i8* %_"+(newVar-2)+" to i32*\n"
@@ -894,24 +894,25 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String left = null, right = null;
         int newVar1 = newVar++;
         int newIf1 = newIf++, newIf2 = newIf++, newIf3 = newIf++;
-        writer.write(
-            "\tbr label %if"+newIf1+"\n"
-            +"if"+newIf1+":\n"
-        );
         left = n.f0.accept(this, null);
         splitRetVal(left, "expression");
         String left_var = toSplit_var;
         writer.write(
-            "\tbr i1 "+left_var+", label %if"+newIf2+", label %if"+newIf3+"\n"
-            + "if"+newIf2+":\n"
-        );
+            "\tbr i1 "+left_var+", label %if"+newIf1
+            + ", label %if"+newIf2+ "\n"
 
+        );
+        writer.write("\nif"+newIf1+":\n");
         right = n.f2.accept(this, null);
         splitRetVal(right, "expression");
         String right_var = toSplit_var;
         writer.write(
-            "\tbr label %if"+newIf3+"\n"
-            + "if"+newIf3+":\n"
+            "\tbr label %if"+newIf2+"\n"
+            + "\nif"+newIf2+":\n"
+            + "\tbr label %if"+newIf3+"\n"
+        );
+        writer.write(
+            "\nif"+newIf3+":\n"
             + "\t%_"+newVar1+" = phi i1 ["+left_var+", %if"+newIf1+"],"
             + " ["+right_var+", %if"+newIf2+"]\n"
         );
@@ -995,11 +996,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         int loop2 = newLoop++;
         writer.write(
             "\tbr i1 "+var_expr+", label %loop"+loop1
-            + ", label %loop"+loop2+"\nloop"+loop1+ ":\n"
+            + ", label %loop"+loop2+"\n\nloop"+loop1+ ":\n"
         );
         n.f4.accept(this, argu);
         writer.write("\tbr label %loop"+(loop1-1)+"\n");
-        writer.write("loop"+loop2+":\n");
+        writer.write("\nloop"+loop2+":\n");
         return null;
     }
 
