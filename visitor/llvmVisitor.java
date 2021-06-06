@@ -47,8 +47,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 String type;
                 
                 writer.write(
-                    "i8* bitcast ("
-                    + llvmType(methodEntry.getValue().method.type)
+                    "i8* bitcast ("+ llvmType(methodEntry.getValue().method.type)
                     + " (i8*"
                 );
                 if (methodEntry.getValue().method.args.size() > 0){
@@ -61,11 +60,9 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                     }
                 }
                 writer.write(
-                    ")* @"
-                    + methodEntry.getValue().value
-                    + " to i8*)"
+                    ")* @"+methodEntry.getValue().value+" to i8*)"
                 );
-                if (index < entry.getValue().methods.size() - 1){
+                if (index < entry.getValue().methodTable.size() - 1){
                     writer.write(", ");
                 }
                 index++;
@@ -158,12 +155,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             }
             else {
                 //its a method var 
-                // if(classDeclarations.containsKey(toSplit_llvm_type)){
-                //     classInfo = classDeclarations.get(toSplit_llvm_type);
-                // }
                 classInfo = classDeclarations.get(className);
-                //
-                //
                 MethodClass currentMethod = classInfo.methods.get(methodName);
                 int newVar1 = newVar++;
                 if (currentMethod.vars.containsKey(toSplit)){
@@ -506,7 +498,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         // splitRetVal(identifier);
         // String ident_type = toSplit_llvm_type;
         
-        int offset = classDeclarations.get(prim_expr_type).methodOffsets.get(identifier)/8;
+        ClassInfo classInfo = classDeclarations.get(prim_expr_type);
+        int offset = 0;
+        do {
+            if (classInfo.methodOffsets.containsKey(identifier)){
+                offset += classInfo.methodOffsets.get(identifier)/8;
+                break;
+            }     
+            classInfo = classDeclarations.get(classInfo.parent);              
+        } while(classInfo != null);
+
+
+
+        
         int newVar1 = newVar++, newVar2 = newVar++, newVar3 = newVar++, newVar4 = newVar++,newVar5 = newVar++;
         ArrayList<String> prevArgList = argList;
         argList = new ArrayList<String>();
@@ -517,19 +521,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + "\t%_"+newVar3+" = getelementptr i8*, i8** %_"+newVar2+", i32 "+offset+"\n"
             + "\t%_"+newVar4+" = load i8*, i8** %_"+newVar3+"\n"
             + "\t%_"+newVar5+" = bitcast i8* %_"+newVar4+" to "
-            +llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).type)
+            +llvmType(classInfo.methods.get(identifier).type)
             + " (i8*"
         );
         String bitcast = "%_"+String.valueOf(newVar5);
         String llvm_type = null;
-        for (int i = 0; i < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); i++){
-            llvm_type = llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).args.get(i).type);
+        for (int i = 0; i < classInfo.methods.get(identifier).args.size(); i++){
+            llvm_type = llvmType(classInfo.methods.get(identifier).args.get(i).type);
             writer.write(", "+llvm_type);
         }
         writer.write(")*\n");
         if (!prim_expr_var.contains("_")) prim_expr_var = "%this";
         String first_arg = prim_expr_var;
-        for (int i = 0; i < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); i++){
+        for (int i = 0; i < classInfo.methods.get(identifier).args.size(); i++){
             splitRetVal(argList.get(i), "arg");
 
         }
@@ -537,7 +541,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
         ArrayList<String> arg_array = new ArrayList<>();
 
-        for (int j = 0; j < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); j++){
+        for (int j = 0; j < classInfo.methods.get(identifier).args.size(); j++){
             if(argList.get(j).contains("/")){
                 String[] newStrings = argList.get(j).split("/", 2);
                 llvm_type = newStrings[1];
@@ -557,15 +561,15 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         int newVar6 = newVar++;
         writer.write(
             "\t%_"+newVar6+" = call "
-            +llvmType(classDeclarations.get(prim_expr_type).methods.get(identifier).type)+" "
+            +llvmType(classInfo.methods.get(identifier).type)+" "
             + bitcast+" (i8* "+first_arg
         );
-        for (int j = 0; j < classDeclarations.get(prim_expr_type).methods.get(identifier).args.size(); j++){
+        for (int j = 0; j < classInfo.methods.get(identifier).args.size(); j++){
             writer.write(", "+arg_array.get(j));
         }
         writer.write(")\n");
         argList = prevArgList;
-        return "%_" + String.valueOf(newVar6)+"/"+classDeclarations.get(prim_expr_type).methods.get(identifier).type;
+        return "%_" + String.valueOf(newVar6)+"/"+classInfo.methods.get(identifier).type;
     }
 
 
@@ -584,14 +588,14 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         int method_offset = 0;
         int i = 0;
         for (Map.Entry<String, Integer> entry : classInfo.fieldOffsets.entrySet()){
-            
             if (i == classInfo.fieldOffsets.size() - 1){
                 offset = entry.getValue();
                 offset += classInfo.fields.get(entry.getKey()).size;
             }
             i++;
         }
-        method_offset = classInfo.methods.size();
+
+        method_offset = classInfo.methodTable.size();
         
         offset += 8;
         int newVar1 = newVar++;
