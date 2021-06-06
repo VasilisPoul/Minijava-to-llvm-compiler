@@ -271,6 +271,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 for(Map.Entry<String,MethodClass> methodEntry : classInfo.methods.entrySet()){
                     MethodClass currentMethod = methodEntry.getValue();
                     // if(!entry.getValue().methodTable.containsKey(currentMethod.name))
+                    if (!currentMethod.name.equals("main"))
                         entry.getValue().methodTable.put(currentMethod.name, new TableInfo(methodEntry.getValue(), classInfo.name+"."+currentMethod.name));
                 }
             }
