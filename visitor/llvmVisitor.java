@@ -23,18 +23,14 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         this.writer = new FileWriter(file);
         for(Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()){
             writer.write(
-                "@." 
-                + entry.getValue().name
-                + "_vtable = global"
-                + " [" 
+                "@."+entry.getValue().name+"_vtable = global [" 
             );    
             if(entry.getValue().methods.containsKey("main")){
                 writer.write("0 x i8*]");
             }
             else {
                 writer.write(
-                    entry.getValue().methodTable.size()
-                    + " x i8*]"
+                    entry.getValue().methodTable.size()+" x i8*]"
                 );
             }
             int index = 0; 
@@ -47,8 +43,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 String type;
                 
                 writer.write(
-                    "i8* bitcast ("+ llvmType(methodEntry.getValue().method.type)
-                    + " (i8*"
+                    "i8* bitcast ("+ llvmType(methodEntry.getValue().method.type)+" (i8*"
                 );
                 if (methodEntry.getValue().method.args.size() > 0){
                     writer.write(",");
