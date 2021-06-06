@@ -131,16 +131,12 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             do {
                 if (classInfo.fieldOffsets.containsKey(toSplit)){
                     toSplit_llvm_type = classInfo.fields.get(toSplit).type;
-                    offset += classDeclarations.get(className).fieldOffsets.get(toSplit);
+                    offset += classInfo.fieldOffsets.get(toSplit);
                     offset += 8;
                     break;
                 }     
-                if (classInfo.parent != null){
-                classInfo = classDeclarations.get(classInfo.parent);
-            }
-                else break;
-                
-            } while(classInfo.parent != null);
+                classInfo = classDeclarations.get(classInfo.parent);              
+            } while(classInfo != null);
             if (offset > 0){ //its a field
                 int newVar1 = newVar++, newVar2 = newVar++;
                 writer.write(
