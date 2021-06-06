@@ -122,63 +122,66 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         }
         else {
             toSplit_var = "%" + toSplit;
+            
             String toSplit_var_p = toSplit_var;
             ClassInfo classInfo = classDeclarations.get(className);
-            int offset = 0;
-            do {
-                if (classInfo.fieldOffsets.containsKey(toSplit)){
-                    toSplit_llvm_type = classInfo.fields.get(toSplit).type;
-                    offset += classInfo.fieldOffsets.get(toSplit);
-                    offset += 8;
-                    break;
-                }     
-                classInfo = classDeclarations.get(classInfo.parent);              
-            } while(classInfo != null);
-            if (offset > 0){ //its a field
-                int newVar1 = newVar++, newVar2 = newVar++;
+
+            //its a method var 
+            classInfo = classDeclarations.get(className);
+            MethodClass currentMethod = classInfo.methods.get(methodName);
+            int newVar4 = newVar++;
+            if (currentMethod.vars.containsKey(toSplit)){
+                toSplit_llvm_type = currentMethod.vars.get(toSplit).type;
                 writer.write(
-                    "\t%_"+newVar1+" = getelementptr i8, i8* %this, i32 "+offset+"\n"
-                    +"\t%_"+newVar2+" = bitcast i8* %_"+newVar1+" to "+llvmType(toSplit_llvm_type)+"*\n"
+                    "\t%_"+newVar4+" = load "+llvmType(toSplit_llvm_type)+", "
+                    + llvmType(toSplit_llvm_type)+"* "+toSplit_var_p+"\n"
                 );
-                
-                toSplit_var = "%_"+String.valueOf(newVar2);
-                if (!inType.equals("identifier")){
-                    int  newVar3 = newVar++;
-                    writer.write(
-                        "\t%_"+newVar3+" = load "+ llvmType(toSplit_llvm_type)+
-                        ", "+llvmType(toSplit_llvm_type)+"* %_"+newVar2+"\n"
-                    );
-                    toSplit_var = "%_"+String.valueOf(newVar3);
-                }
-                
-                return true; 
+                toSplit_var = "%_"+String.valueOf(newVar4); 
             }
             else {
-                //its a method var 
-                classInfo = classDeclarations.get(className);
-                MethodClass currentMethod = classInfo.methods.get(methodName);
-                int newVar1 = newVar++;
-                if (currentMethod.vars.containsKey(toSplit)){
-                    toSplit_llvm_type = currentMethod.vars.get(toSplit).type;
-                    writer.write(
-                        "\t%_"+newVar1+" = load "+llvmType(toSplit_llvm_type)+", "
-                        + llvmType(toSplit_llvm_type)+"* "+toSplit_var_p+"\n"
-                    );
-                    toSplit_var = "%_"+String.valueOf(newVar1); 
-                }
-                else {
-                    //its an arg
-                    ArrayList<VarClass> args = currentMethod.args;
-                    for (int i = 0; i < args.size(); i++){
-                        if (args.get(i).name.equals(toSplit)){
-                            toSplit_llvm_type = args.get(i).type;
-                            writer.write(
-                                "\t%_"+newVar1+" = load "+llvmType(toSplit_llvm_type)+", "
-                                + llvmType(toSplit_llvm_type)+"* "+toSplit_var_p+"\n"
-                            );
-                            toSplit_var = "%_"+String.valueOf(newVar1); 
-                        }
+                //its an arg
+                ArrayList<VarClass> args = currentMethod.args;
+                for (int i = 0; i < args.size(); i++){
+                    if (args.get(i).name.equals(toSplit)){
+                        toSplit_llvm_type = args.get(i).type;
+                        writer.write(
+                            "\t%_"+newVar4+" = load "+llvmType(toSplit_llvm_type)+", "
+                            + llvmType(toSplit_llvm_type)+"* "+toSplit_var_p+"\n"
+                        );
+                        toSplit_var = "%_"+String.valueOf(newVar4); 
                     }
+                }
+            }
+
+            if (toSplit_var.equals("%"+toSplit)){
+                int offset = 0;
+                do {
+                    if (classInfo.fieldOffsets.containsKey(toSplit)){
+                        toSplit_llvm_type = classInfo.fields.get(toSplit).type;
+                        offset += classInfo.fieldOffsets.get(toSplit);
+                        offset += 8;
+                        break;
+                    }     
+                    classInfo = classDeclarations.get(classInfo.parent);              
+                } while(classInfo != null);
+                if (offset > 0){ //its a field
+                    int newVar1 = newVar++, newVar2 = newVar++;
+                    writer.write(
+                        "\t%_"+newVar1+" = getelementptr i8, i8* %this, i32 "+offset+"\n"
+                        +"\t%_"+newVar2+" = bitcast i8* %_"+newVar1+" to "+llvmType(toSplit_llvm_type)+"*\n"
+                    );
+                    
+                    toSplit_var = "%_"+String.valueOf(newVar2);
+                    if (!inType.equals("identifier")){
+                        int  newVar3 = newVar++;
+                        writer.write(
+                            "\t%_"+newVar3+" = load "+ llvmType(toSplit_llvm_type)+
+                            ", "+llvmType(toSplit_llvm_type)+"* %_"+newVar2+"\n"
+                        );
+                        toSplit_var = "%_"+String.valueOf(newVar3);
+                    }
+                    
+                    return true; 
                 }
             }
         }
