@@ -41,18 +41,21 @@ public class TypeVisitor extends GJDepthFirst<String, String>{
                     if (currentMethod.name.equals("main")){
                         break;
                     }
-                    if(!parentMethodOffsets.containsKey(currentMethod.name) && classStack.size() > 0) 
-                        parentMethodOffsets.put(currentMethod.name, methodOffset);
+                    if(!parentMethodOffsets.containsKey(currentMethod.name) && classStack.size() > 0) {
+
+                        parentMethodOffsets.put(currentMethod.name, methodOffset); 
+                        methodOffset += 8;
+                    }
                     if(classStack.size() == 0){
                         if(parentMethodOffsets.containsKey(currentMethod.name)){
                             continue;
-                            // entry.getValue().methodOffsets.put(currentMethod.name, allMethodOffsets.get(currentMethod.name));
                         }   
                         else{
                             entry.getValue().methodOffsets.put(currentMethod.name, methodOffset);
+                            methodOffset += 8;
                         }
                     }
-                    methodOffset += 8;
+                    
                 }
             }
 
