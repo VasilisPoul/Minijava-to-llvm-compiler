@@ -566,13 +566,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         int offset = 0;
         int method_offset = 0;
         int i = 0;
+        boolean flag = false;
         do { 
             for (Map.Entry<String, Integer> entry : classInfo.fieldOffsets.entrySet()){
                 if (i == classInfo.fieldOffsets.size() - 1){
                     offset = entry.getValue();
                     offset += classInfo.fields.get(entry.getKey()).size;
+                    flag = true;
                     break;
                 }
+                i++;
+            }
+            if (flag){
+                break;
             }
             classInfo = classDeclarations.get(classInfo.parent);              
         } while(classInfo != null);
