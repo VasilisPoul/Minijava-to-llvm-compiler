@@ -40,7 +40,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 if ((methodEntry.getValue().method.name).equals("main")){
                     continue;
                 }
-                String type;
                 
                 writer.write(
                     "i8* bitcast ("+ llvmType(methodEntry.getValue().method.type)+" (i8*"
@@ -411,6 +410,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
      * f0 -> FormalParameter()
      * f1 -> FormalParameterTail()
      */
+    @Override
     public String visit(FormalParameterTerm n, String argu) throws Exception {
         return n.f1.accept(this, null);
     }
@@ -474,7 +474,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* %"+identifier+"\n"
         );
     }
-    
     return ident_var+"/"+ident_type;
  }
 
@@ -503,9 +502,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             classInfo = classDeclarations.get(classInfo.parent);              
         } while(classInfo != null);
 
-
-
-        
         int newVar1 = newVar++, newVar2 = newVar++, newVar3 = newVar++, newVar4 = newVar++,newVar5 = newVar++;
         ArrayList<String> prevArgList = argList;
         argList = new ArrayList<String>();
@@ -516,8 +512,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             + "\t%_"+newVar3+" = getelementptr i8*, i8** %_"+newVar2+", i32 "+offset+"\n"
             + "\t%_"+newVar4+" = load i8*, i8** %_"+newVar3+"\n"
             + "\t%_"+newVar5+" = bitcast i8* %_"+newVar4+" to "
-            +llvmType(classInfo.methods.get(identifier).type)
-            + " (i8*"
+            + llvmType(classInfo.methods.get(identifier).type)+" (i8*"
         );
         String bitcast = "%_"+String.valueOf(newVar5);
         String llvm_type = null;
@@ -533,7 +528,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
         }
         
-
         ArrayList<String> arg_array = new ArrayList<>();
 
         for (int j = 0; j < classInfo.methods.get(identifier).args.size(); j++){
@@ -546,10 +540,8 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             else {
                 splitRetVal(argList.get(j), "expression");
                 arg_array.add(llvmType(toSplit_llvm_type)+" "+toSplit_var);
-            }
-            
+            }  
         }
-
 
         int newVar6 = newVar++;
         writer.write(
@@ -564,7 +556,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         argList = prevArgList;
         return "%_" + String.valueOf(newVar6)+"/"+classInfo.methods.get(identifier).type;
     }
-
 
     /**
     * f0 -> "new"
@@ -591,7 +582,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             classInfo = classDeclarations.get(classInfo.parent);              
         } while(classInfo != null);
         classInfo = classDeclarations.get(ident);
-
 
         method_offset = classInfo.methodTable.size();
         
@@ -621,7 +611,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String visit(ArrayAllocationExpression n, String argu) throws Exception {
         String expr = n.f3.accept(this, null);
         splitRetVal(expr, "expression");
-        String expr_var = toSplit_var, expr_type = toSplit_llvm_type;
+        String expr_var = toSplit_var;
         int newVar1 = newVar++;
         int newAlloc1 = newAlloc++, newAlloc2 = newAlloc++;
         writer.write(
@@ -750,7 +740,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_"+newLoadVar+"/i32";
     }
 
-
     /**
     * f0 -> Identifier()
     * f1 -> "["
@@ -777,7 +766,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         );
         int addVar = newVar++;
         int newGetElVar = newVar++;
-        int newLoadVar = newVar++; 
         int oob3 = newOob++;
         writer.write(
             "\noob"+oob1+":\n"
@@ -938,6 +926,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     * f0 -> "!"
     * f1 -> PrimaryExpression()
     */
+    @Override
     public String visit(NotExpression n, String argu) throws Exception {
         String expr = n.f1.accept(this, null);
         splitRetVal(expr, "expression");
@@ -956,6 +945,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     * f5 -> "else"
     * f6 -> Statement()
     */
+    @Override
     public String visit(IfStatement n, String argu) throws Exception {
         String expr = n.f2.accept(this, null);
         splitRetVal(expr, "expression");
@@ -964,7 +954,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         writer.write(
             "\tbr i1 "+var_expr+", label %if"+newIf0
             + ", label %if"+newIf1+ "\n"
-
         );
         writer.write("\nif"+newIf0+":\n");
         n.f4.accept(this, null);
@@ -983,6 +972,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     * f3 -> ")"
     * f4 -> Statement()
     */
+    @Override
     public String visit(WhileStatement n, String argu) throws Exception {
         writer.write(
             "\tbr label %loop"+ newLoop++
@@ -1003,16 +993,17 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return null;
     }
 
-       /**
+    /**
     * f0 -> Type()
     * f1 -> Identifier()
     */
-   public String visit(FormalParameter n, String argu) throws Exception {
-    String type = n.f0.accept(this, argu);
-    String identifier = n.f1.accept(this, argu);
-    writer.write(", "+llvmType(type)+" %."+identifier);
-    return null;
- }
+    @Override
+    public String visit(FormalParameter n, String argu) throws Exception {
+        String type = n.f0.accept(this, argu);
+        String identifier = n.f1.accept(this, argu);
+        writer.write(", "+llvmType(type)+" %."+identifier);
+        return null;
+    }
 
     /**
     * f0 -> Expression()
@@ -1046,19 +1037,19 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return value;
     }
     
-
     /**
     * f0 -> ","
     * f1 -> Expression()
     */
+    @Override
     public String visit(ExpressionTerm n, String argu) throws Exception {
         n.f0.accept(this, argu);
         n.f1.accept(this, argu);
         return null;
     }
 
+    @Override
     public String visit(PrimaryExpression n, String argu) throws Exception {
         return n.f0.accept(this, argu);
     }
-
 }
