@@ -50,7 +50,7 @@ public class Main {
                 root.accept(llvm, null);
                 llvm.writer.close();
                 System.out.println("-----------------------");
-                System.out.println("Intermediate Code generated successfully.");
+                System.out.println("Intermediate Code for \"" + filename + "\" generated successfully.");
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());
