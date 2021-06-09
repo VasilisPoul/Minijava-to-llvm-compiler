@@ -49,6 +49,8 @@ public class Main {
                 llvmVisitor llvm = new llvmVisitor(type.classDeclarations, filename + ".ll");
                 root.accept(llvm, null);
                 llvm.writer.close();
+                System.out.println("-----------------------");
+                System.out.println("Intermediate Code generated successfully.");
             }
             catch(ParseException ex){
                 System.out.println(ex.getMessage());
@@ -58,7 +60,6 @@ public class Main {
             }
             catch(Exception ex){
                 System.err.println(ex.getMessage());
-
             }
             finally{
                 

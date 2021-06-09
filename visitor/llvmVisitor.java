@@ -107,7 +107,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             String[] newStrings = toSplit.split("/", 2);
             toSplit_llvm_type = newStrings[1];
             toSplit_var = newStrings[0];
-
         }
         else if (toSplit.equals("this")){
             toSplit_var = "%this";
@@ -174,7 +173,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                         );
                         toSplit_var = "%_"+String.valueOf(newVar3);
                     }
-                    
                     return true; 
                 }
             }
@@ -402,7 +400,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         if (n.f1 != null) {
             ret += n.f1.accept(this, null);
         }
-
         return ret;
     }
 
@@ -428,7 +425,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
 
         return ret;
     }
-
 
     /**
     * f0 -> Type()
@@ -525,7 +521,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         String first_arg = prim_expr_var;
         for (int i = 0; i < classInfo.methods.get(identifier).args.size(); i++){
             splitRetVal(argList.get(i), "arg");
-
         }
         
         ArrayList<String> arg_array = new ArrayList<>();
@@ -600,7 +595,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_"+String.valueOf(newVar1)+"/"+ident;
     }
   
-       /**
+    /**
     * f0 -> "new"
     * f1 -> "int"
     * f2 -> "["
@@ -634,21 +629,37 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_"+(newVar-1)+"/i32*";
     }
 
+    /**
+    * f0 -> "int"
+    * f1 -> "["
+    * f2 -> "]"
+    */
     @Override
     public String visit(ArrayType n, String argu) {
         return "int[]";
     }
 
+    /**
+    * f0 -> "boolean"
+    */
     @Override
     public String visit(BooleanType n, String argu) {
         return "boolean";
     }
 
+    /**
+    * f0 -> "int"
+    */
     @Override
     public String visit(IntegerType n, String argu) {
         return "int";
     }
 
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "+"
+    * f2 -> PrimaryExpression()
+    */
     @Override
     public String visit(PlusExpression n, String argu) throws Exception{
         String left = null, right = null;
@@ -666,6 +677,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_" + result+ "/i32";    
     }
 
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "-"
+    * f2 -> PrimaryExpression()
+    */
     @Override
     public String visit(MinusExpression n, String argu) throws Exception{
         String left = null, right = null;
@@ -683,6 +699,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_" + result+ "/i32";   
     }
 
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "*"
+    * f2 -> PrimaryExpression()
+    */
     @Override
     public String visit(TimesExpression n, String argu) throws Exception{
         String left = null, right = null;
@@ -791,6 +812,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return null;
     }
 
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "."
+    * f2 -> "length"
+    */
     @Override
     public String visit(ArrayLength n, String argu) throws Exception{ 
         String expr = n.f0.accept(this, null);
@@ -803,6 +829,9 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_"+(newVar-1)+"/i32";
     }
 
+    /**
+    * f0 -> <INTEGER_LITERAL>
+    */
     @Override
     public String visit(IntegerLiteral n, String argu) throws Exception {
         String integ =  n.f0.toString();
@@ -814,6 +843,9 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return ret;
     }
 
+    /**
+    * f0 -> "true"
+    */
     @Override
     public String visit(TrueLiteral n, String argu) throws Exception {
         writer.write(
@@ -824,6 +856,9 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return ret;
     }
 
+    /**
+    * f0 -> "false"
+    */
     @Override
     public String visit(FalseLiteral n, String argu) throws Exception {
         writer.write(
@@ -834,11 +869,17 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return ret;
     }
 
+    /**
+    * f0 -> "this"
+    */
     @Override
     public String visit(ThisExpression n, String argu) {
         return n.f0.toString();
     }
-
+    
+    /**
+    * f0 -> <IDENTIFIER>
+    */
     @Override
     public String visit(Identifier n, String argu) {
         return n.f0.toString();
@@ -854,7 +895,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return n.f1.accept(this, null);
     }
 
-       /**
+    /**
     * f0 -> "System.out.println"
     * f1 -> "("
     * f2 -> Expression()
@@ -871,7 +912,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return null;
     }
 
-       /**
+    /**
     * f0 -> PrimaryExpression()
     * f1 -> "&&"
     * f2 -> PrimaryExpression()
@@ -907,6 +948,11 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         return "%_"+newVar1+"/i1";
     }
 
+    /**
+    * f0 -> PrimaryExpression()
+    * f1 -> "<"
+    * f2 -> PrimaryExpression()
+    */
     @Override
     public String visit(CompareExpression n, String argu) throws Exception {
         String left = null, right = null;
@@ -934,7 +980,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         writer.write("\t%_"+newVar+++" = xor i1 1, "+var_expr+"\n");
         return "%_"+String.valueOf(newVar - 1)+"/i1";
     }
-
 
     /**
     * f0 -> "if"
@@ -1047,7 +1092,17 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         n.f1.accept(this, argu);
         return null;
     }
-
+    /**
+    * f0 -> IntegerLiteral()
+    *       | TrueLiteral()
+    *       | FalseLiteral()
+    *       | Identifier()
+    *       | ThisExpression()
+    *       | ArrayAllocationExpression()
+    *       | AllocationExpression()
+    *       | NotExpression()
+    *       | BracketExpression()
+    */
     @Override
     public String visit(PrimaryExpression n, String argu) throws Exception {
         return n.f0.accept(this, argu);
