@@ -86,22 +86,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         );
     }
 
-    int fieldOffset(String field){
-        ClassInfo classInfo = classDeclarations.get(className);
-        int offset = 0;
-
-        while (classInfo.parent != null){
-            if (classInfo.fieldOffsets.containsKey(field)){
-                toSplit_llvm_type = llvmType(classInfo.fields.get(field).type);
-                offset += classDeclarations.get(className).fieldOffsets.get(field);
-                offset += 8;
-                break;
-            }     
-            classInfo = classDeclarations.get(classInfo.parent);
-        }
-        return offset;
-    }
-
     boolean splitRetVal(String toSplit, String inType) throws Exception{
         if(toSplit.contains("/")){
             String[] newStrings = toSplit.split("/", 2);
@@ -269,7 +253,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                         entry.getValue().methodTable.put(currentMethod.name, new TableInfo(methodEntry.getValue(), classInfo.name+"."+currentMethod.name));
                 }
             }
-
         }
     }
 
