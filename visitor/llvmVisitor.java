@@ -268,7 +268,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 ClassInfo classInfo = classStack.pop();
                 for(Map.Entry<String,MethodClass> methodEntry : classInfo.methods.entrySet()){
                     MethodClass currentMethod = methodEntry.getValue();
-                    // if(!entry.getValue().methodTable.containsKey(currentMethod.name))
                     if (!currentMethod.name.equals("main"))
                         entry.getValue().methodTable.put(currentMethod.name, new TableInfo(methodEntry.getValue(), classInfo.name+"."+currentMethod.name));
                 }
@@ -387,7 +386,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         }
         n.f7.accept(this, argu);
         n.f8.accept(this, argu);
-        // n.f9.accept(this, argu);
         String ret = n.f10.accept(this, argu);
         splitRetVal(ret,"expression");
         writer.write("\tret "+llvmType(toSplit_llvm_type)+" "+toSplit_var+ "\n}\n");
@@ -494,8 +492,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         splitRetVal(prim_expr, "expression");
         String prim_expr_var = toSplit_var, prim_expr_type = toSplit_llvm_type;  
         String identifier = n.f2.accept(this, null);
-        // splitRetVal(identifier);
-        // String ident_type = toSplit_llvm_type;
         
         ClassInfo classInfo = classDeclarations.get(prim_expr_type);
         int offset = 0;
@@ -548,8 +544,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
                 arg_array.add(llvmType(llvm_type)+" "+prim_expr_var); 
             }
             else {
-                // prim_expr_var = "%" + argList.get(j);
-                // prim_expr_var = "%_" + String.valueOf(newVar - (classDeclarations.get(prim_expr_type).methods.get(identifier).args.size() - j + 1));
                 splitRetVal(argList.get(j), "expression");
                 arg_array.add(llvmType(toSplit_llvm_type)+" "+toSplit_var);
             }
