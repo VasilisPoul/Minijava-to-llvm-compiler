@@ -453,25 +453,25 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
      */
     @Override
     public String visit(AssignmentStatement n, String argu) throws Exception {
-    String identifier = n.f0.accept(this, null);
-    Boolean splitBool = splitRetVal(identifier, "identifier");
-    String ident_var = toSplit_var, ident_type = toSplit_llvm_type;
-    String expr = n.f2.accept(this, null);
-    splitRetVal(expr, "expression");
-    String expr_var = toSplit_var, expr_type = toSplit_llvm_type; 
-    if (splitBool){
-        writer.write(
-            "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* "+ident_var+"\n"
-        );
-        return "%_"+ident_var+"/"+llvmType(ident_type)+"*";
+        String identifier = n.f0.accept(this, null);
+        Boolean splitBool = splitRetVal(identifier, "identifier");
+        String ident_var = toSplit_var, ident_type = toSplit_llvm_type;
+        String expr = n.f2.accept(this, null);
+        splitRetVal(expr, "expression");
+        String expr_var = toSplit_var, expr_type = toSplit_llvm_type; 
+        if (splitBool){
+            writer.write(
+                "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* "+ident_var+"\n"
+            );
+            return "%_"+ident_var+"/"+llvmType(ident_type)+"*";
+        }
+        else{
+            writer.write(
+                "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* %"+identifier+"\n"
+            );
+        }
+        return ident_var+"/"+ident_type;
     }
-    else{
-        writer.write(
-            "\tstore "+llvmType(expr_type)+" "+expr_var+", "+llvmType(ident_type)+"* %"+identifier+"\n"
-        );
-    }
-    return ident_var+"/"+ident_type;
- }
 
     /**
     * f0 -> PrimaryExpression()
@@ -722,7 +722,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     }
 
     /**
-     * f0 -> PrimaryExpression()
+    * f0 -> PrimaryExpression()
     * f1 -> "["
     * f2 -> PrimaryExpression()
     * f3 -> "]"
@@ -1092,6 +1092,7 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
         n.f1.accept(this, argu);
         return null;
     }
+
     /**
     * f0 -> IntegerLiteral()
     *       | TrueLiteral()
