@@ -20,7 +20,8 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
     public String toSplit_llvm_type;
     public llvmVisitor(LinkedHashMap<String, ClassInfo> classDeclarations, String file) throws IOException{
         this.classDeclarations = classDeclarations;
-        this.writer = new FileWriter(file);
+        this.writer = new FileWriter(file); 
+        generateVtMap();
         for(Map.Entry<String, ClassInfo> entry : classDeclarations.entrySet()){
             writer.write(
                 "@."+entry.getValue().name+"_vtable = global [" 
@@ -35,7 +36,6 @@ public class llvmVisitor extends GJDepthFirst<String, String>{
             }
             int index = 0; 
             writer.write(" [");
-            generateVtMap();
             for(Map.Entry<String, TableInfo> methodEntry : entry.getValue().methodTable.entrySet()){
                 if ((methodEntry.getValue().method.name).equals("main")){
                     continue;
